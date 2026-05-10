@@ -1,7 +1,7 @@
 {
   "users": [
-    { "username": "ffa", "displayName": "Yönetici", "role": "admin", "password": "1234****" },
-    { "username": "beyza", "displayName": "Öğrenci 1", "role": "student", "password": "1234****" },
-    { "username": "cagri", "displayName": "Öğrenci 2", "role": "student", "password": "1234****" }
+    { "username": "ffa", "displayName": "Yönetici", "role": "admin", "password": "1234" },
+    { "username": "beyza", "displayName": "Öğrenci 1", "role": "student", "password": "1234" },
+    { "username": "cagri", "displayName": "Öğrenci 2", "role": "student", "password": "1234" }
   ]
 }
