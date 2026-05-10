@@ -1,0 +1,19 @@
+{
+  "app": "Soru Kartı Programı",
+  "version": "github-pages-api-persistent-v3",
+  "username": "cagri",
+  "displayName": "Öğrenci 2",
+  "dataFile": "data/cagri.json",
+  "exportedAt": "2026-05-10T19:37:16.122Z",
+  "cards": [
+    {
+      "id": "cagri_1778441835554_146374",
+      "question": "selam",
+      "answer": "naber",
+      "owner": "cagri",
+      "createdAt": "2026-05-10T19:37:15.554Z",
+      "updatedAt": "2026-05-10T19:37:15.554Z"
+    }
+  ],
+  "savedToGithubAt": "2026-05-10T19:37:16.122Z"
+}
