@@ -20,7 +20,8 @@
       border-radius: 16px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.08);
     }
-    h1 { text-align: center; }
+    h1 { text-align: center; margin-top: 4px; }
+    h2 { margin-bottom: 8px; }
     textarea, input {
       width: 100%;
       padding: 12px;
@@ -45,6 +46,8 @@
     button.secondary { background: #475569; }
     button.danger { background: #dc2626; }
     button.success { background: #16a34a; }
+    button.light { background: #e2e8f0; color: #0f172a; }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
     .card-box {
       margin-top: 24px;
       padding: 20px;
@@ -56,6 +59,7 @@
       font-size: 22px;
       font-weight: bold;
       margin-bottom: 16px;
+      white-space: pre-wrap;
     }
     .answer {
       display: none;
@@ -65,9 +69,7 @@
       border-radius: 10px;
       white-space: pre-wrap;
     }
-    .list {
-      margin-top: 24px;
-    }
+    .list { margin-top: 24px; }
     .item {
       padding: 12px;
       background: #f8fafc;
@@ -76,13 +78,97 @@
       margin-bottom: 8px;
     }
     .small { color: #64748b; font-size: 14px; }
-    .row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .hidden { display: none; }
+    .status {
+      padding: 12px;
+      background: #fef9c3;
+      border: 1px solid #fde68a;
+      border-radius: 12px;
+      margin: 12px 0;
+      font-size: 14px;
+      color: #713f12;
+    }
+    .ok {
+      background: #dcfce7;
+      border-color: #86efac;
+      color: #14532d;
+    }
+    .error {
+      background: #fee2e2;
+      border-color: #fecaca;
+      color: #7f1d1d;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .user-pill {
+      background: #eef2ff;
+      color: #1e3a8a;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .export-area {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px dashed #94a3b8;
+      background: #f8fafc;
+    }
+    .export-area textarea {
+      min-height: 160px;
+      font-family: monospace;
+      font-size: 13px;
+    }
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      .container { padding: 16px; border-radius: 12px; }
+      h1 { font-size: 24px; }
+      button { width: 100%; margin-right: 0; }
+      .row { display: block; }
+      .question { font-size: 20px; }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="container" id="loginPanel">
     <h1>Soru Kartı Programı</h1>
-    <p class="small">Sorunu ve cevabını yaz, kaydet. Daha sonra karışık soru çekip cevabı açabilirsin. Veriler bu tarayıcıda saklanır.</p>
+    <p class="small">GitHub Pages uyumlu girişli sürüm. Her kullanıcı kendi soru kartlarını ayrı olarak görür.</p>
+
+    <div id="loginMessage" class="status">Kullanıcı bilgileri yükleniyor...</div>
+
+    <label><strong>Kullanıcı Adı</strong></label>
+    <input id="usernameInput" type="text" autocomplete="username" placeholder="Örn: ogrenci1" disabled />
+
+    <label><strong>Şifre</strong></label>
+    <input id="passwordInput" type="password" autocomplete="current-password" placeholder="Şifrenizi yazın" disabled />
+
+    <button id="loginButton" onclick="login()" disabled>Giriş Yap</button>
+
+    <p class="small">Varsayılan deneme kullanıcıları: <strong>admin / 1234</strong>, <strong>ogrenci1 / 1234</strong>, <strong>ogrenci2 / 1234</strong>.</p>
+    <p class="small">Not: GitHub Pages statik yayın yaptığı için bu giriş yapısı eğitim/demo amaçlıdır. Gerçek güvenli kullanıcı sistemi için backend gerekir.</p>
+  </div>
+
+  <div class="container hidden" id="appPanel">
+    <div class="topbar">
+      <div>
+        <h1>Soru Kartı Programı</h1>
+        <p class="small">Sorunu ve cevabını yaz, kaydet. Daha sonra karışık soru çekip cevabı açabilirsin.</p>
+      </div>
+      <div class="row">
+        <span id="activeUser" class="user-pill"></span>
+        <button class="light" onclick="logout()">Çıkış Yap</button>
+      </div>
+    </div>
+
+    <div id="storageWarning" class="status hidden"></div>
 
     <label><strong>Soru</strong></label>
     <textarea id="questionInput" placeholder="Örn: Kronik migren tanımı nedir?"></textarea>
@@ -93,10 +179,16 @@
     <div class="row">
       <button onclick="saveCard()">Kartı Kaydet</button>
       <button class="success" onclick="showRandomCard()">Karışık Soru Getir</button>
-      <button class="secondary" onclick="exportCards()">Kartları Dışa Aktar</button>
-      <button class="secondary" onclick="document.getElementById('importFile').click()">Kartları İçe Aktar</button>
+      <button class="secondary" onclick="exportCards()">Kartlarımı Dışa Aktar</button>
+      <button class="secondary" onclick="document.getElementById('importFile').click()">Kartlarımı İçe Aktar</button>
       <input id="importFile" type="file" accept="application/json" style="display:none" onchange="importCards(event)" />
-      <button class="danger" onclick="clearAllCards()">Tümünü Sil</button>
+      <button class="danger" onclick="clearAllCards()">Kartlarımı Sil</button>
+    </div>
+
+    <div id="exportArea" class="export-area hidden">
+      <strong>Dışa aktarma metni</strong>
+      <p class="small">iPhone indirmeyi engellerse aşağıdaki JSON metnini kopyalayıp kendi dosyanıza kaydedebilirsiniz.</p>
+      <textarea id="exportText" readonly></textarea>
     </div>
 
     <div class="card-box">
@@ -112,24 +204,233 @@
   </div>
 
   <script>
-    let cards = JSON.parse(localStorage.getItem("flashcards_tr") || "[]");
-    let currentCard = null;
+    var userConfig = {
+      salt: "soru-karti-v1",
+      users: [
+        { username: "ffa", displayName: "Yönetici", role: "admin", passwordHash: "00b66a12e47976c4946388ead49ea7d0dabc1288d047fc2e8d69e0d095a66ffa" },
+        { username: "beyza", displayName: "Öğrenci 1", role: "student", passwordHash: "1671203b0bd7af093b21524c0aee64a09afa2d54426ea387da16df5b97f6ffe1" },
+        { username: "cagri", displayName: "Öğrenci 2", role: "student", passwordHash: "92b36122a379edb7a71978360b0af25ea4121c9ab7cd3e35a36d21c72965616b" }
+      ]
+    };
 
-    function saveCards() {
-      localStorage.setItem("flashcards_tr", JSON.stringify(cards));
+    var activeUser = null;
+    var cards = [];
+    var currentCard = null;
+    var storageAvailable = true;
+
+    function setLoginMessage(text, type) {
+      var box = document.getElementById("loginMessage");
+      box.className = "status" + (type ? " " + type : "");
+      box.textContent = text;
+    }
+
+    function enableLoginForm() {
+      document.getElementById("usernameInput").disabled = false;
+      document.getElementById("passwordInput").disabled = false;
+      document.getElementById("loginButton").disabled = false;
+    }
+
+    function loadUsers() {
+      if (!window.fetch) {
+        setLoginMessage("Tarayıcı fetch desteği vermiyor. Gömülü demo kullanıcıları kullanılacak.", "status");
+        enableLoginForm();
+        restoreSession();
+        return;
+      }
+
+      fetch("users.json", { cache: "no-store" })
+        .then(function(response) {
+          if (!response.ok) {
+            throw new Error("users.json okunamadı");
+          }
+          return response.json();
+        })
+        .then(function(data) {
+          if (data && data.users && data.users.length > 0) {
+            userConfig = data;
+          }
+          setLoginMessage("Kullanıcı bilgileri yüklendi. Giriş yapabilirsiniz.", "ok");
+          enableLoginForm();
+          restoreSession();
+        })
+        .catch(function() {
+          setLoginMessage("users.json okunamadı. Gömülü demo kullanıcıları kullanılacak. GitHub Pages'te yayınlandığında users.json dosyasının yüklü olduğundan emin olun.", "status");
+          enableLoginForm();
+          restoreSession();
+        });
+    }
+
+    function restoreSession() {
+      try {
+        var savedUsername = sessionStorage.getItem("soru_karti_active_user");
+        if (savedUsername) {
+          var found = findUser(savedUsername);
+          if (found) {
+            loginAs(found);
+          }
+        }
+      } catch (e) {}
+    }
+
+    function findUser(username) {
+      var clean = normalizeUsername(username);
+      for (var i = 0; i < userConfig.users.length; i++) {
+        if (normalizeUsername(userConfig.users[i].username) === clean) {
+          return userConfig.users[i];
+        }
+      }
+      return null;
+    }
+
+    function normalizeUsername(text) {
+      return String(text || "").trim().toLowerCase();
+    }
+
+    function login() {
+      var username = normalizeUsername(document.getElementById("usernameInput").value);
+      var password = document.getElementById("passwordInput").value;
+
+      if (!username || !password) {
+        setLoginMessage("Lütfen kullanıcı adı ve şifre girin.", "error");
+        return;
+      }
+
+      var user = findUser(username);
+      if (!user) {
+        setLoginMessage("Kullanıcı bulunamadı.", "error");
+        return;
+      }
+
+      hashPassword(username, password)
+        .then(function(hash) {
+          if (hash === user.passwordHash) {
+            loginAs(user);
+          } else {
+            setLoginMessage("Şifre hatalı.", "error");
+          }
+        })
+        .catch(function() {
+          setLoginMessage("Bu tarayıcı güvenli şifre doğrulamasını desteklemiyor. GitHub Pages HTTPS adresinden açmayı deneyin.", "error");
+        });
+    }
+
+    function hashPassword(username, password) {
+      var raw = String(userConfig.salt || "soru-karti-v1") + ":" + normalizeUsername(username) + ":" + String(password);
+      return sha256(raw);
+    }
+
+    function sha256(text) {
+      return new Promise(function(resolve, reject) {
+        if (!window.crypto || !window.crypto.subtle || !window.TextEncoder) {
+          reject(new Error("WebCrypto desteklenmiyor"));
+          return;
+        }
+        var data = new TextEncoder().encode(text);
+        window.crypto.subtle.digest("SHA-256", data).then(function(buffer) {
+          var bytes = new Uint8Array(buffer);
+          var hex = "";
+          for (var i = 0; i < bytes.length; i++) {
+            hex += ("00" + bytes[i].toString(16)).slice(-2);
+          }
+          resolve(hex);
+        }).catch(reject);
+      });
+    }
+
+    function loginAs(user) {
+      activeUser = {
+        username: normalizeUsername(user.username),
+        displayName: user.displayName || user.username,
+        role: user.role || "user"
+      };
+
+      try {
+        sessionStorage.setItem("soru_karti_active_user", activeUser.username);
+      } catch (e) {}
+
+      document.getElementById("loginPanel").className = "container hidden";
+      document.getElementById("appPanel").className = "container";
+      document.getElementById("activeUser").textContent = activeUser.displayName + " (" + activeUser.username + ")";
+      document.getElementById("passwordInput").value = "";
+      loadCardsForUser();
       renderList();
     }
 
+    function logout() {
+      activeUser = null;
+      cards = [];
+      currentCard = null;
+      try {
+        sessionStorage.removeItem("soru_karti_active_user");
+      } catch (e) {}
+      document.getElementById("appPanel").className = "container hidden";
+      document.getElementById("loginPanel").className = "container";
+      document.getElementById("currentQuestion").textContent = "Henüz soru seçilmedi.";
+      document.getElementById("currentAnswer").textContent = "";
+      document.getElementById("currentAnswer").style.display = "none";
+      setLoginMessage("Çıkış yapıldı. Tekrar giriş yapabilirsiniz.", "ok");
+    }
+
+    function getStorageKey() {
+      if (!activeUser) return "soru_kartlari_v2_guest";
+      return "soru_kartlari_v2_" + activeUser.username;
+    }
+
+    function loadCardsForUser() {
+      try {
+        var raw = localStorage.getItem(getStorageKey()) || "[]";
+        cards = JSON.parse(raw);
+        if (!Array.isArray(cards)) cards = [];
+        storageAvailable = true;
+        hideStorageWarning();
+      } catch (e) {
+        cards = [];
+        storageAvailable = false;
+        showStorageWarning("Tarayıcı yerel depolamaya izin vermiyor. Kartlar bu oturumda geçici tutulacak. Çıkmadan önce dışa aktarmanız önerilir.");
+      }
+    }
+
+    function saveCards() {
+      if (!activeUser) return;
+      try {
+        localStorage.setItem(getStorageKey(), JSON.stringify(cards));
+        storageAvailable = true;
+        hideStorageWarning();
+      } catch (e) {
+        storageAvailable = false;
+        showStorageWarning("Kartlar tarayıcıya kaydedilemedi. iPhone depolamayı engelliyor olabilir. Kartlarınızı dışa aktararak saklayın.");
+      }
+      renderList();
+    }
+
+    function showStorageWarning(message) {
+      var box = document.getElementById("storageWarning");
+      box.className = "status";
+      box.textContent = message;
+    }
+
+    function hideStorageWarning() {
+      var box = document.getElementById("storageWarning");
+      box.className = "status hidden";
+      box.textContent = "";
+    }
+
     function saveCard() {
-      const question = document.getElementById("questionInput").value.trim();
-      const answer = document.getElementById("answerInput").value.trim();
+      var question = document.getElementById("questionInput").value.trim();
+      var answer = document.getElementById("answerInput").value.trim();
 
       if (!question || !answer) {
         alert("Lütfen hem soru hem cevap yaz.");
         return;
       }
 
-      cards.push({ question, answer, createdAt: new Date().toISOString() });
+      cards.push({
+        question: question,
+        answer: answer,
+        owner: activeUser.username,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
       document.getElementById("questionInput").value = "";
       document.getElementById("answerInput").value = "";
       saveCards();
@@ -140,10 +441,10 @@
         alert("Önce en az bir kart eklemelisin.");
         return;
       }
-      const randomIndex = Math.floor(Math.random() * cards.length);
+      var randomIndex = Math.floor(Math.random() * cards.length);
       currentCard = cards[randomIndex];
       document.getElementById("currentQuestion").textContent = currentCard.question;
-      const answerBox = document.getElementById("currentAnswer");
+      var answerBox = document.getElementById("currentAnswer");
       answerBox.textContent = currentCard.answer;
       answerBox.style.display = "none";
     }
@@ -164,10 +465,12 @@
     }
 
     function clearAllCards() {
-      if (confirm("Tüm kartları silmek istediğine emin misin?")) {
+      if (confirm("Bu kullanıcıya ait tüm kartları silmek istediğine emin misin?")) {
         cards = [];
         currentCard = null;
-        localStorage.removeItem("flashcards_tr");
+        try {
+          localStorage.removeItem(getStorageKey());
+        } catch (e) {}
         document.getElementById("currentQuestion").textContent = "Henüz soru seçilmedi.";
         document.getElementById("currentAnswer").textContent = "";
         document.getElementById("currentAnswer").style.display = "none";
@@ -176,51 +479,104 @@
     }
 
     function exportCards() {
-      const blob = new Blob([JSON.stringify(cards, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "soru_kartlari.json";
-      a.click();
-      URL.revokeObjectURL(url);
+      if (!activeUser) return;
+      var exportObject = {
+        app: "Soru Kartı Programı",
+        version: "github-pages-v1",
+        username: activeUser.username,
+        displayName: activeUser.displayName,
+        exportedAt: new Date().toISOString(),
+        cards: cards
+      };
+      var jsonText = JSON.stringify(exportObject, null, 2);
+      var filename = "soru_kartlari_" + activeUser.username + ".json";
+
+      document.getElementById("exportText").value = jsonText;
+      document.getElementById("exportArea").className = "export-area";
+
+      try {
+        var blob = new Blob([jsonText], { type: "application/json" });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+      } catch (e) {
+        alert("Dosya otomatik indirilemedi. Aşağıdaki JSON metnini kopyalayabilirsiniz.");
+      }
     }
 
     function importCards(event) {
-      const file = event.target.files[0];
+      var file = event.target.files[0];
       if (!file) return;
-      const reader = new FileReader();
+      var reader = new FileReader();
       reader.onload = function(e) {
         try {
-          const imported = JSON.parse(e.target.result);
-          if (!Array.isArray(imported)) throw new Error();
-          cards = cards.concat(imported.filter(c => c.question && c.answer));
+          var imported = JSON.parse(e.target.result);
+          var importedCards = [];
+
+          if (Array.isArray(imported)) {
+            importedCards = imported;
+          } else if (imported && Array.isArray(imported.cards)) {
+            importedCards = imported.cards;
+          } else {
+            throw new Error("Format uygun değil");
+          }
+
+          var cleaned = [];
+          for (var i = 0; i < importedCards.length; i++) {
+            var c = importedCards[i];
+            if (c && c.question && c.answer) {
+              cleaned.push({
+                question: String(c.question),
+                answer: String(c.answer),
+                owner: activeUser.username,
+                createdAt: c.createdAt || new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              });
+            }
+          }
+
+          cards = cards.concat(cleaned);
           saveCards();
-          alert("Kartlar içe aktarıldı.");
-        } catch {
+          alert(cleaned.length + " kart içe aktarıldı.");
+        } catch (err) {
           alert("Geçerli bir kart dosyası seçilmedi.");
         }
       };
       reader.readAsText(file);
+      event.target.value = "";
     }
 
     function renderList() {
-      document.getElementById("count").textContent = `(${cards.length} kart)`;
-      const list = document.getElementById("cardList");
+      document.getElementById("count").textContent = "(" + cards.length + " kart)";
+      var list = document.getElementById("cardList");
       list.innerHTML = "";
-      cards.forEach((card, index) => {
-        const div = document.createElement("div");
+
+      if (cards.length === 0) {
+        var empty = document.createElement("p");
+        empty.className = "small";
+        empty.textContent = "Bu kullanıcı için henüz kart eklenmedi.";
+        list.appendChild(empty);
+        return;
+      }
+
+      for (var i = 0; i < cards.length; i++) {
+        var card = cards[i];
+        var div = document.createElement("div");
         div.className = "item";
-        div.innerHTML = `
-          <strong>${escapeHtml(card.question)}</strong><br>
-          <span class="small">${escapeHtml(card.answer).slice(0, 120)}${card.answer.length > 120 ? "..." : ""}</span><br>
-          <button class="danger" onclick="deleteCard(${index})">Sil</button>
-        `;
+        div.innerHTML = "<strong>" + escapeHtml(card.question) + "</strong><br>" +
+          "<span class='small'>" + escapeHtml(card.answer).slice(0, 120) + (card.answer.length > 120 ? "..." : "") + "</span><br>" +
+          "<button class='danger' onclick='deleteCard(" + i + ")'>Sil</button>";
         list.appendChild(div);
-      });
+      }
     }
 
     function escapeHtml(text) {
-      return text.replace(/[&<>'"]/g, function(char) {
+      return String(text).replace(/[&<>'"]/g, function(char) {
         return {
           '&': '&amp;',
           '<': '&lt;',
@@ -231,7 +587,15 @@
       });
     }
 
-    renderList();
+    document.addEventListener("DOMContentLoaded", function() {
+      loadUsers();
+      document.getElementById("passwordInput").addEventListener("keydown", function(e) {
+        if (e.key === "Enter") login();
+      });
+      document.getElementById("usernameInput").addEventListener("keydown", function(e) {
+        if (e.key === "Enter") login();
+      });
+    });
   </script>
 </body>
 </html>
