@@ -13,15 +13,14 @@
       color: #222;
     }
     .container {
-      max-width: 900px;
+      max-width: 850px;
       margin: auto;
       background: white;
       padding: 24px;
       border-radius: 16px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.08);
     }
-    h1 { text-align: center; margin-top: 4px; }
-    h2 { margin-bottom: 8px; }
+    h1 { text-align: center; margin-top: 0; }
     textarea, input {
       width: 100%;
       padding: 12px;
@@ -34,20 +33,18 @@
     }
     textarea { min-height: 90px; resize: vertical; }
     button {
-      padding: 11px 16px;
+      padding: 15px 24px;
       border: none;
-      border-radius: 10px;
+      border-radius: 14px;
       cursor: pointer;
-      font-size: 15px;
-      margin: 5px 4px 5px 0;
+      font-size: 18px;
+      margin: 5px 6px 5px 0;
       background: #2563eb;
       color: white;
     }
     button.secondary { background: #475569; }
     button.danger { background: #dc2626; }
     button.success { background: #16a34a; }
-    button.warning { background: #d97706; }
-    button.light { background: #e2e8f0; color: #0f172a; }
     button:disabled { opacity: 0.55; cursor: not-allowed; }
     .card-box {
       margin-top: 24px;
@@ -80,121 +77,85 @@
     }
     .small { color: #64748b; font-size: 14px; }
     .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    .hidden { display: none; }
-    .status {
-      padding: 12px;
-      background: #fef9c3;
-      border: 1px solid #fde68a;
-      border-radius: 12px;
-      margin: 12px 0;
-      font-size: 14px;
-      color: #713f12;
-    }
-    .ok {
-      background: #dcfce7;
-      border-color: #86efac;
-      color: #14532d;
-    }
-    .error {
-      background: #fee2e2;
-      border-color: #fecaca;
-      color: #7f1d1d;
-    }
-    .info {
-      background: #dbeafe;
-      border-color: #93c5fd;
-      color: #1e3a8a;
-    }
+    .hidden { display: none !important; }
     .topbar {
       display: flex;
       justify-content: space-between;
-      align-items: center;
       gap: 12px;
       flex-wrap: wrap;
-      margin-bottom: 8px;
-    }
-    .user-pill {
-      background: #eef2ff;
-      color: #1e3a8a;
-      padding: 8px 12px;
-      border-radius: 999px;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    .settings-box {
-      margin-top: 18px;
-      padding: 16px;
-      border-radius: 14px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-    }
-    .settings-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px 14px;
-      align-items: end;
-    }
-    .settings-grid label { display: block; }
-    .checkbox-line {
-      display: flex;
       align-items: center;
-      gap: 8px;
-      margin: 8px 0 12px 0;
-      font-size: 14px;
-      color: #334155;
+      margin-bottom: 12px;
     }
-    .checkbox-line input { width: auto; margin: 0; }
-    .muted-code {
-      font-family: monospace;
-      background: #e2e8f0;
-      border-radius: 6px;
-      padding: 2px 6px;
+    .status {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #9a3412;
+      font-size: 14px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .status.ok {
+      background: #ecfdf5;
+      border-color: #bbf7d0;
+      color: #166534;
+    }
+    .status.error {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #991b1b;
+    }
+    .status.info {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+      color: #1d4ed8;
+    }
+    .export-box {
+      width: 100%;
+      min-height: 130px;
+      margin-top: 10px;
+      font-family: Consolas, monospace;
+      font-size: 13px;
+      display: none;
     }
     @media (max-width: 600px) {
       body { padding: 10px; }
       .container { padding: 16px; border-radius: 12px; }
-      h1 { font-size: 24px; }
       button { width: 100%; margin-right: 0; }
       .row { display: block; }
-      .settings-grid { grid-template-columns: 1fr; }
-      .question { font-size: 20px; }
+      .topbar { display: block; }
     }
   </style>
 </head>
 <body>
-  <div class="container" id="loginPanel">
+  <div id="loginPanel" class="container">
     <h1>Soru Kartı Programı</h1>
-    <p class="small">GitHub Pages uyumlu girişli sürüm. Her kullanıcının kartları GitHub üzerinde kendi adına ait kalıcı data dosyasında tutulur.</p>
-
-    <div id="loginMessage" class="status">Kullanıcı bilgileri yükleniyor...</div>
+    <p class="small">Kullanıcı adı ve şifre ile giriş yapın. Her kullanıcının kartları GitHub reposunda <strong>data/kullaniciadi.json</strong> dosyasında kalıcı tutulur.</p>
 
     <label><strong>Kullanıcı Adı</strong></label>
-    <input id="usernameInput" type="text" autocomplete="username" placeholder="Örn: ogrenci1" disabled />
+    <input id="usernameInput" type="text" placeholder="Örn: ogrenci1" autocomplete="username" />
 
     <label><strong>Şifre</strong></label>
-    <input id="passwordInput" type="password" autocomplete="current-password" placeholder="Şifrenizi yazın" disabled />
+    <input id="passwordInput" type="password" placeholder="Şifre" autocomplete="current-password" />
 
-    <button id="loginButton" onclick="login()" disabled>Giriş Yap</button>
-
-
+    <button id="loginButton" onclick="login()">Giriş Yap</button>
+    <div id="loginMessage" class="status info">Kullanıcı bilgileri yükleniyor...</div>
   </div>
 
-  <div class="container hidden" id="appPanel">
+  <div id="appPanel" class="container hidden">
     <div class="topbar">
       <div>
         <h1>Soru Kartı Programı</h1>
-        <p class="small">Sorunu ve cevabını yaz, kaydet. Daha sonra karışık soru çekip cevabı açabilirsin.</p>
+        <div class="small">Aktif kullanıcı: <strong id="activeUser"></strong></div>
+        <div class="small">Kalıcı dosya: <strong id="dataPathPreview"></strong></div>
       </div>
-      <div class="row">
-        <span id="activeUser" class="user-pill"></span>
-        <button class="light" onclick="logout()">Çıkış Yap</button>
-      </div>
+      <button class="secondary" onclick="logout()">Çıkış Yap</button>
     </div>
 
-    <div id="dataInfo" class="status info hidden"></div>
     <div id="storageWarning" class="status hidden"></div>
-
+    <div id="githubStatus" class="status info">GitHub JSON kayıt durumu burada görünecek.</div>
 
     <label><strong>Soru</strong></label>
     <textarea id="questionInput" placeholder="Örn: Kronik migren tanımı nedir?"></textarea>
@@ -203,11 +164,14 @@
     <textarea id="answerInput" placeholder="Örn: Ayda en az 15 gün baş ağrısı ve bunun en az 8 günü migren özellikli..."></textarea>
 
     <div class="row">
-      <button onclick="saveCard()">Kartı Kaydet</button>
+      <button id="saveButton" onclick="saveCard()">Kartı Kaydet</button>
       <button class="success" onclick="showRandomCard()">Karışık Soru Getir</button>
-      <button class="danger" onclick="clearLocalCards()">Yerel Kartları Sil</button>
+      <button class="secondary" onclick="exportCards()">Kartları Dışa Aktar</button>
+      <button class="secondary" onclick="document.getElementById('importFile').click()">Kartları İçe Aktar</button>
+      <input id="importFile" type="file" accept="application/json,.json" style="display:none" onchange="importJson(event)" />
+      <button class="danger" onclick="clearAllCards()">Tümünü Sil</button>
     </div>
-
+    <textarea id="exportFallback" class="export-box" readonly></textarea>
 
     <div class="card-box">
       <div id="currentQuestion" class="question">Henüz soru seçilmedi.</div>
@@ -222,59 +186,96 @@
   </div>
 
   <script>
+   
+    var DEFAULT_GITHUB_SETTINGS = {
+      owner: "cagriarisoy",              
+      repo: "soru-karti",               
+      branch: "main",          
+      token: "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",
+      autoSave: true
+    };
+
     var userConfig = {
       users: [
-        { username: "ffa", displayName: "Yönetici", role: "admin", password: "1234*qwerty" },
-        { username: "beyza", displayName: "Öğrenci 1", role: "student", password: "1234*qwerty" },
-        { username: "cagri", displayName: "Öğrenci 2", role: "student", password: "1234*qwerty" }
+        { username: "admin", displayName: "Yönetici", role: "admin", password: "1234*qwerty" },
+        { username: "ogrenci1", displayName: "Öğrenci 1", role: "student", password: "1234*qwerty" },
+        { username: "ogrenci2", displayName: "Öğrenci 2", role: "student", password: "1234*qwerty" }
       ]
     };
 
-    var DEFAULT_GITHUB_SETTINGS = {
-
-      owner: "cagriarisoy",
-      repo: "soru-karti",
-      branch: "main",
-
-      
-      token: "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",
-
-      autoSave: true
-    };
-
-    var githubSettings = {
-      owner: "",
-      repo: "",
-      branch: "main",
-      token: "",
-      autoSave: true
-    };
-
+    var githubSettings = { owner: "", repo: "", branch: "main", token: "", autoSave: true };
     var activeUser = null;
     var cards = [];
     var currentCard = null;
-    var storageAvailable = true;
+    var isSavingGithub = false;
+
+    function normalizeUsername(text) {
+      return String(text || "").trim().toLowerCase();
+    }
 
     function setLoginMessage(text, type) {
       var box = document.getElementById("loginMessage");
-      box.className = "status" + (type ? " " + type : "");
+      box.className = "status " + (type || "info");
       box.textContent = text;
     }
 
-    function enableLoginForm() {
-      document.getElementById("usernameInput").disabled = false;
-      document.getElementById("passwordInput").disabled = false;
-      document.getElementById("loginButton").disabled = false;
+    function setGithubStatus(text, type) {
+      var box = document.getElementById("githubStatus");
+      box.className = "status " + (type || "info");
+      box.textContent = text;
+    }
+
+    function inferGithubPagesSettings() {
+      var inferred = { owner: "", repo: "" };
+      try {
+        var host = window.location.hostname || "";
+        if (host.indexOf("github.io") !== -1) {
+          inferred.owner = host.split(".")[0] || "";
+          var parts = window.location.pathname.split("/").filter(function(x) { return x; });
+          if (parts.length > 0) inferred.repo = parts[0];
+          else inferred.repo = inferred.owner ? inferred.owner + ".github.io" : "";
+        }
+      } catch (e) {}
+      return inferred;
+    }
+
+    function loadGithubSettings() {
+      var inferred = inferGithubPagesSettings();
+      githubSettings.owner = DEFAULT_GITHUB_SETTINGS.owner || inferred.owner || "";
+      githubSettings.repo = DEFAULT_GITHUB_SETTINGS.repo || inferred.repo || "";
+      githubSettings.branch = DEFAULT_GITHUB_SETTINGS.branch || "main";
+      githubSettings.token = DEFAULT_GITHUB_SETTINGS.token || "";
+      githubSettings.autoSave = DEFAULT_GITHUB_SETTINGS.autoSave !== false;
+    }
+
+    function hasConfiguredToken() {
+      var t = String(githubSettings.token || "").trim();
+      return !!t && t !== "BURAYA_GITHUB_TOKEN_YAZIN";
+    }
+
+    function validateGithubSettings(manual) {
+      loadGithubSettings();
+      var missing = [];
+      if (!githubSettings.owner) missing.push("owner");
+      if (!githubSettings.repo) missing.push("repo");
+      if (!githubSettings.branch) missing.push("branch");
+      if (!hasConfiguredToken()) missing.push("token");
+      if (missing.length > 0) {
+        var msg = "GitHub'a kalıcı kayıt yapılamadı. index.html içindeki DEFAULT_GITHUB_SETTINGS bölümünde eksik alan var: " + missing.join(", ") + ".";
+        setGithubStatus(msg, "error");
+        if (manual) alert(msg);
+        return false;
+      }
+      return true;
     }
 
     function loadUsers() {
+      loadGithubSettings();
       if (!window.fetch) {
-        setLoginMessage("Tarayıcı fetch desteği vermiyor. Gömülü demo kullanıcıları kullanılacak.", "status");
-        enableLoginForm();
+        setLoginMessage("Tarayıcı fetch desteği vermiyor. Gömülü kullanıcılar kullanılacak.", "info");
         restoreSession();
         return;
       }
-
       fetch("users.json?v=" + Date.now(), { cache: "no-store" })
         .then(function(response) {
           if (!response.ok) throw new Error("users.json okunamadı");
@@ -283,12 +284,10 @@
         .then(function(data) {
           if (data && data.users && data.users.length > 0) userConfig = data;
           setLoginMessage("Kullanıcı bilgileri yüklendi. Giriş yapabilirsiniz.", "ok");
-          enableLoginForm();
           restoreSession();
         })
         .catch(function() {
-          setLoginMessage("users.json okunamadı. Gömülü demo kullanıcıları kullanılacak.", "status");
-          enableLoginForm();
+          setLoginMessage("users.json okunamadı. Gömülü demo kullanıcıları kullanılacak.", "info");
           restoreSession();
         });
     }
@@ -311,30 +310,23 @@
       return null;
     }
 
-    function normalizeUsername(text) {
-      return String(text || "").trim().toLowerCase();
-    }
-
     function login() {
       var username = normalizeUsername(document.getElementById("usernameInput").value);
       var password = String(document.getElementById("passwordInput").value || "").trim();
-
       if (!username || !password) {
         setLoginMessage("Lütfen kullanıcı adı ve şifre girin.", "error");
         return;
       }
-
       var user = findUser(username);
       if (!user) {
         setLoginMessage("Kullanıcı bulunamadı.", "error");
         return;
       }
-
-      if (String(user.password || "").trim() === password) {
-        loginAs(user);
-      } else {
+      if (String(user.password || "").trim() !== password) {
         setLoginMessage("Şifre hatalı.", "error");
+        return;
       }
+      loginAs(user);
     }
 
     function loginAs(user) {
@@ -343,15 +335,12 @@
         displayName: user.displayName || user.username,
         role: user.role || "user"
       };
-
       try { sessionStorage.setItem("soru_karti_active_user", activeUser.username); } catch (e) {}
-
       document.getElementById("loginPanel").className = "container hidden";
       document.getElementById("appPanel").className = "container";
       document.getElementById("activeUser").textContent = activeUser.displayName + " (" + activeUser.username + ")";
+      document.getElementById("dataPathPreview").textContent = getGithubDataPath();
       document.getElementById("passwordInput").value = "";
-      loadGithubSettings();
-      updateDataPathPreview();
       loadCardsForUser();
     }
 
@@ -369,129 +358,78 @@
     }
 
     function getStorageKey() {
-      if (!activeUser) return "soru_kartlari_guest";
-      return "soru_kartlari_" + activeUser.username;
+      return activeUser ? "soru_kartlari_" + activeUser.username : "soru_kartlari_guest";
     }
 
     function getGithubDataPath() {
       return "data/" + activeUser.username + ".json";
     }
 
-    function showDataInfo(message, type) {
-      var box = document.getElementById("dataInfo");
-      box.className = "status " + (type || "info");
-      box.textContent = message;
-    }
-
     function loadCardsForUser() {
       cards = [];
       currentCard = null;
       renderList();
-      showDataInfo("Kullanıcıya ait data dosyası kontrol ediliyor: " + getGithubDataPath(), "info");
-
+      setGithubStatus("Kartlar yükleniyor: " + getGithubDataPath(), "info");
       var localCards = loadLocalCards();
 
-      if (!window.fetch) {
-        cards = localCards;
-        showDataInfo("Tarayıcı data dosyasını okuyamadı. Sadece bu cihazdaki yerel kayıtlar yüklendi.", "status");
-        renderList();
+      // Token varsa doğrudan GitHub API'den oku; bu yöntem Pages önbelleğinden daha günceldir.
+      if (validateGithubSettings(false) && window.fetch) {
+        getGithubFile(getGithubDataPath())
+          .then(function(fileObj) {
+            cards = mergeCards(fileObj.cards || [], localCards || []);
+            saveLocalCards(false);
+            renderList();
+            setGithubStatus("Kartlar GitHub dosyasından yüklendi: " + getGithubDataPath(), "ok");
+          })
+          .catch(function(err) {
+            cards = localCards;
+            renderList();
+            setGithubStatus("GitHub dosyası okunamadı; bu cihazdaki yerel kayıtlar yüklendi. Yeni kart kaydedince GitHub'a yazmayı tekrar deneyecek.\nHata: " + (err.message || String(err)), "error");
+          });
         return;
       }
 
-      fetch(getGithubDataPath() + "?v=" + Date.now(), { cache: "no-store" })
-        .then(function(response) {
-          if (!response.ok) throw new Error("Data dosyası bulunamadı");
-          return response.json();
-        })
-        .then(function(data) {
-          var githubCards = extractCards(data);
-          cards = mergeCards(githubCards, localCards);
-          saveCards(false);
-          showDataInfo("GitHub data dosyası ve yerel kayıtlar yüklendi. Kalıcı GitHub dosyası: " + getGithubDataPath(), "ok");
-          renderList();
-        })
-        .catch(function() {
-          cards = localCards;
-          showDataInfo("Bu kullanıcı için GitHub data dosyası henüz bulunamadı veya okunamadı. Yeni kart kaydedildiğinde GitHub üzerinde data dosyası oluşturulmaya çalışılacak.", "status");
-          renderList();
-        });
-    }
-
-    function extractCards(data) {
-      if (Array.isArray(data)) return normalizeCards(data);
-      if (data && Array.isArray(data.cards)) return normalizeCards(data.cards);
-      return [];
-    }
-
-    function normalizeCards(inputCards) {
-      var result = [];
-      for (var i = 0; i < inputCards.length; i++) {
-        var c = inputCards[i];
-        if (c && c.question && c.answer) {
-          result.push({
-            id: c.id || makeId(),
-            question: String(c.question),
-            answer: String(c.answer),
-            owner: activeUser ? activeUser.username : (c.owner || ""),
-            createdAt: c.createdAt || new Date().toISOString(),
-            updatedAt: c.updatedAt || c.createdAt || new Date().toISOString()
+      // Token yoksa statik data dosyasını okumayı dene.
+      if (window.fetch) {
+        fetch(getGithubDataPath() + "?v=" + Date.now(), { cache: "no-store" })
+          .then(function(response) {
+            if (!response.ok) throw new Error("Data dosyası bulunamadı");
+            return response.json();
+          })
+          .then(function(data) {
+            cards = mergeCards(extractCards(data), localCards);
+            saveLocalCards(false);
+            renderList();
+            setGithubStatus("Data dosyası okundu; ancak token ayarı yoksa yeni kartlar GitHub'a yazılamaz.", "info");
+          })
+          .catch(function() {
+            cards = localCards;
+            renderList();
           });
-        }
+      } else {
+        cards = localCards;
+        renderList();
       }
-      return result;
-    }
-
-    function mergeCards(a, b) {
-      var map = {};
-      var merged = [];
-      function addList(list) {
-        for (var i = 0; i < list.length; i++) {
-          var card = list[i];
-          var id = card.id || makeId();
-          card.id = id;
-          if (!map[id]) {
-            map[id] = card;
-            merged.push(card);
-          } else {
-            var oldTime = new Date(map[id].updatedAt || map[id].createdAt || 0).getTime();
-            var newTime = new Date(card.updatedAt || card.createdAt || 0).getTime();
-            if (newTime > oldTime) {
-              for (var j = 0; j < merged.length; j++) {
-                if (merged[j].id === id) merged[j] = card;
-              }
-              map[id] = card;
-            }
-          }
-        }
-      }
-      addList(a || []);
-      addList(b || []);
-      return merged;
     }
 
     function loadLocalCards() {
       try {
         var raw = localStorage.getItem(getStorageKey()) || "[]";
         var parsed = JSON.parse(raw);
-        storageAvailable = true;
         hideStorageWarning();
         return normalizeCards(Array.isArray(parsed) ? parsed : extractCards(parsed));
       } catch (e) {
-        storageAvailable = false;
-        showStorageWarning("Tarayıcı yerel depolamaya izin vermiyor. Kartlar bu oturumda geçici tutulacak.");
+        showStorageWarning("Tarayıcı yerel depolamaya izin vermiyor. GitHub kaydı çalışırsa kartlar yine kalıcı olur.");
         return [];
       }
     }
 
-    function saveCards(shouldRender) {
-      if (!activeUser) return;
+    function saveLocalCards(shouldRender) {
       try {
         localStorage.setItem(getStorageKey(), JSON.stringify(cards));
-        storageAvailable = true;
         hideStorageWarning();
       } catch (e) {
-        storageAvailable = false;
-        showStorageWarning("Kartlar tarayıcıya kaydedilemedi. Kalıcı kayıt için GitHub kaydı kullanılacaktır.");
+        showStorageWarning("Kartlar bu cihazda yerel olarak saklanamadı. GitHub kaydı kullanılacak.");
       }
       if (shouldRender !== false) renderList();
     }
@@ -514,30 +452,28 @@
     }
 
     function saveCard() {
+      if (!activeUser) return;
       var question = document.getElementById("questionInput").value.trim();
       var answer = document.getElementById("answerInput").value.trim();
-
       if (!question || !answer) {
         alert("Lütfen hem soru hem cevap yaz.");
         return;
       }
-
+      var now = new Date().toISOString();
       cards.push({
         id: makeId(),
         question: question,
         answer: answer,
         owner: activeUser.username,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        createdAt: now,
+        updatedAt: now
       });
       document.getElementById("questionInput").value = "";
       document.getElementById("answerInput").value = "";
-      saveCards();
-      if (githubSettings && githubSettings.autoSave && githubSettings.token && githubSettings.owner && githubSettings.repo) {
-        showDataInfo("Kart eklendi. Kalıcı data dosyasına kaydediliyor: " + getGithubDataPath(), "info");
-        saveCardsToGithub(false);
-      } else {
-        showDataInfo("Kart yerel olarak eklendi. Kalıcı kayıt için index.html içindeki DEFAULT_GITHUB_SETTINGS bölümünde owner, repo ve token bilgileri doldurulmalıdır.", "status");
+      saveLocalCards(true);
+
+      if (githubSettings.autoSave) {
+        saveCardsToGithub(false, false);
       }
     }
 
@@ -563,14 +499,15 @@
     }
 
     function deleteCard(index) {
-      if (confirm("Bu kart sadece bu cihazdaki listeden silinsin mi? GitHub data dosyasından otomatik silinmez; sayfa yenilenince GitHub dosyasında varsa geri gelebilir.")) {
+      if (confirm("Bu kart silinsin mi? Silme işlemi GitHub JSON dosyasına da kaydedilir.")) {
         cards.splice(index, 1);
-        saveCards();
+        saveLocalCards(true);
+        saveCardsToGithub(false, true);
       }
     }
 
-    function clearLocalCards() {
-      if (confirm("Bu kullanıcıya ait bu cihazdaki yerel kartları silmek istediğine emin misin? GitHub data dosyası silinmez.")) {
+    function clearAllCards() {
+      if (confirm("Bu kullanıcıya ait tüm kartları silmek istediğinize emin misiniz? Bu işlem GitHub JSON dosyasına da boş liste olarak kaydedilir.")) {
         cards = [];
         currentCard = null;
         try { localStorage.removeItem(getStorageKey()); } catch (e) {}
@@ -578,135 +515,155 @@
         document.getElementById("currentAnswer").textContent = "";
         document.getElementById("currentAnswer").style.display = "none";
         renderList();
-        showDataInfo("Yerel kayıtlar silindi. GitHub'daki data dosyası silinmedi; sayfa yenilenince tekrar okunabilir.", "status");
+        saveCardsToGithub(false, true);
       }
+    }
+
+    function normalizeCards(inputCards) {
+      var result = [];
+      for (var i = 0; i < (inputCards || []).length; i++) {
+        var c = inputCards[i];
+        if (c && c.question && c.answer) {
+          result.push({
+            id: c.id || makeId(),
+            question: String(c.question),
+            answer: String(c.answer),
+            owner: activeUser ? activeUser.username : (c.owner || ""),
+            createdAt: c.createdAt || new Date().toISOString(),
+            updatedAt: c.updatedAt || c.createdAt || new Date().toISOString()
+          });
+        }
+      }
+      return result;
+    }
+
+    function extractCards(data) {
+      if (Array.isArray(data)) return normalizeCards(data);
+      if (data && Array.isArray(data.cards)) return normalizeCards(data.cards);
+      return [];
+    }
+
+    function mergeCards(a, b) {
+      var map = {};
+      var merged = [];
+      function addList(list) {
+        for (var i = 0; i < (list || []).length; i++) {
+          var card = list[i];
+          var id = card.id || makeId();
+          card.id = id;
+          if (!map[id]) {
+            map[id] = card;
+            merged.push(card);
+          } else {
+            var oldTime = new Date(map[id].updatedAt || map[id].createdAt || 0).getTime();
+            var newTime = new Date(card.updatedAt || card.createdAt || 0).getTime();
+            if (newTime > oldTime) {
+              map[id] = card;
+              for (var j = 0; j < merged.length; j++) {
+                if (merged[j].id === id) merged[j] = card;
+              }
+            }
+          }
+        }
+      }
+      addList(a);
+      addList(b);
+      return merged;
     }
 
     function buildExportObject() {
       return {
         app: "Soru Kartı Programı",
-        version: "github-pages-data-v2",
+        version: "github-pages-api-persistent-json-buttons-v5",
         username: activeUser.username,
         displayName: activeUser.displayName,
-        dataFile: "data/" + activeUser.username + ".json",
+        dataFile: getGithubDataPath(),
         exportedAt: new Date().toISOString(),
         cards: cards
       };
     }
 
-    function renderList() {
-      document.getElementById("count").textContent = "(" + cards.length + " kart)";
-      var list = document.getElementById("cardList");
-      list.innerHTML = "";
+    function exportCards() {
+      var text = JSON.stringify(buildExportObject(), null, 2);
+      downloadFile(activeUser.username + ".json", text, "application/json;charset=utf-8");
+    }
 
-      if (cards.length === 0) {
-        var empty = document.createElement("p");
-        empty.className = "small";
-        empty.textContent = "Bu kullanıcı için henüz kart eklenmedi.";
-        list.appendChild(empty);
-        return;
-      }
+    function exportJson() {
+      exportCards();
+    }
 
+    function exportTxt() {
+      var lines = [];
+      lines.push("Soru Kartı Programı");
+      lines.push("Kullanıcı: " + activeUser.username);
+      lines.push("Dışa aktarma: " + new Date().toISOString());
+      lines.push("");
       for (var i = 0; i < cards.length; i++) {
-        var card = cards[i];
-        var div = document.createElement("div");
-        div.className = "item";
-        div.innerHTML = "<strong>" + escapeHtml(card.question) + "</strong><br>" +
-          "<span class='small'>" + escapeHtml(card.answer).slice(0, 140) + (card.answer.length > 140 ? "..." : "") + "</span><br>" +
-          "<span class='small'>Dosya: data/" + escapeHtml(activeUser.username) + ".json</span><br>" +
-          "<button class='danger' onclick='deleteCard(" + i + ")'>Sil</button>";
-        list.appendChild(div);
+        lines.push((i + 1) + ". Soru: " + cards[i].question);
+        lines.push("   Cevap: " + cards[i].answer);
+        lines.push("");
       }
+      downloadFile(activeUser.username + ".txt", lines.join("\n"), "text/plain;charset=utf-8");
     }
 
-    function escapeHtml(text) {
-      return String(text).replace(/[&<>'"]/g, function(char) {
-        return {
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          "'": '&#39;',
-          '"': '&quot;'
-        }[char];
-      });
+    function csvEscape(value) {
+      var text = String(value == null ? "" : value);
+      return '"' + text.replace(/"/g, '""') + '"';
     }
 
+    function exportCsv() {
+      var rows = [["id", "question", "answer", "owner", "createdAt", "updatedAt"]];
+      for (var i = 0; i < cards.length; i++) {
+        rows.push([cards[i].id, cards[i].question, cards[i].answer, cards[i].owner, cards[i].createdAt, cards[i].updatedAt]);
+      }
+      var csv = rows.map(function(row) {
+        return row.map(csvEscape).join(",");
+      }).join("\n");
+      downloadFile(activeUser.username + ".csv", "\ufeff" + csv, "text/csv;charset=utf-8");
+    }
 
-    function inferGithubPagesSettings() {
-      var inferred = { owner: "", repo: "" };
+    function downloadFile(filename, text, type) {
+      var fallback = document.getElementById("exportFallback");
+      fallback.style.display = "none";
+      fallback.value = "";
       try {
-        var host = window.location.hostname || "";
-        if (host.indexOf("github.io") !== -1) {
-          inferred.owner = host.split(".")[0] || "";
-          var parts = window.location.pathname.split("/").filter(function(x) { return x; });
-          inferred.repo = parts.length > 0 ? parts[0] : (inferred.owner ? inferred.owner + ".github.io" : "");
+        var blob = new Blob([text], { type: type });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function() {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 0);
+      } catch (e) {
+        fallback.style.display = "block";
+        fallback.value = text;
+        alert("İndirme başlatılamadı. İçerik aşağıdaki kutuya yazıldı; kopyalayabilirsiniz.");
+      }
+    }
+
+    function importJson(event) {
+      var file = event.target.files && event.target.files[0];
+      event.target.value = "";
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          var imported = JSON.parse(e.target.result);
+          var importedCards = extractCards(imported);
+          if (!importedCards.length) throw new Error("Kart bulunamadı");
+          cards = mergeCards(cards, importedCards);
+          saveLocalCards(true);
+          setGithubStatus("Kartlar içe aktarıldı. GitHub JSON dosyasına kalıcı kaydediliyor...", "info");
+          saveCardsToGithub(false, false);
+        } catch (err) {
+          alert("Geçerli bir kart JSON dosyası seçilmedi.");
         }
-      } catch (e) {}
-      return inferred;
-    }
-
-    function getGithubSettingsKey() {
-      return "soru_karti_github_settings";
-    }
-
-    function loadGithubSettings() {
-      var inferred = inferGithubPagesSettings();
-      githubSettings = {
-        owner: DEFAULT_GITHUB_SETTINGS.owner || inferred.owner || "",
-        repo: DEFAULT_GITHUB_SETTINGS.repo || inferred.repo || "",
-        branch: DEFAULT_GITHUB_SETTINGS.branch || "main",
-        token: DEFAULT_GITHUB_SETTINGS.token || "",
-        autoSave: DEFAULT_GITHUB_SETTINGS.autoSave !== false
       };
-      // GitHub ayarları artık ekrandaki formdan değil, yalnızca HTML içindeki
-      // DEFAULT_GITHUB_SETTINGS bölümünden veya GitHub Pages adresinden otomatik alınır.
-    }
-
-    function fillGithubSettingsForm() {
-      var owner = document.getElementById("ghOwner");
-      var repo = document.getElementById("ghRepo");
-      var branch = document.getElementById("ghBranch");
-      var autoSave = document.getElementById("ghAutoSave");
-      if (!owner) return;
-      owner.value = githubSettings.owner || "";
-      repo.value = githubSettings.repo || "";
-      branch.value = githubSettings.branch || "main";
-      autoSave.checked = githubSettings.autoSave !== false;
-    }
-
-    function saveGithubSettings() {
-      // Görünür GitHub ayar paneli kaldırıldı. Ayarlar HTML içindeki DEFAULT_GITHUB_SETTINGS bölümünden alınır.
-      loadGithubSettings();
-      showDataInfo("GitHub ayarları HTML içindeki DEFAULT_GITHUB_SETTINGS bölümünden okunuyor.", "info");
-    }
-
-    function updateDataPathPreview() {
-      var el = document.getElementById("dataPathPreview");
-      if (el && activeUser) el.textContent = getGithubDataPath();
-    }
-
-    function showGithubStatus(message, type) {
-      var box = document.getElementById("githubStatus");
-      if (box) {
-        box.className = "status " + (type || "info");
-        box.textContent = message;
-      }
-    }
-
-    function hasConfiguredToken() {
-      var t = String(githubSettings.token || "").trim();
-      return t && t !== "BURAYA_GITHUB_TOKEN_YAZIN";
-    }
-
-    function validateGithubSettings(showAlert) {
-      if (!githubSettings.owner || !githubSettings.repo || !githubSettings.branch || !hasConfiguredToken()) {
-        var msg = "GitHub'a yazmak için index.html içindeki DEFAULT_GITHUB_SETTINGS bölümünde owner, repo, branch ve token değerleri doldurulmalıdır.";
-        showGithubStatus(msg, "error");
-        showDataInfo(msg, "error");
-        if (showAlert) alert(msg);
-        return false;
-      }
-      return true;
+      reader.readAsText(file);
     }
 
     function githubApiBase() {
@@ -730,10 +687,13 @@
       try {
         return btoa(unescape(encodeURIComponent(str)));
       } catch (e) {
-        var bytes = new TextEncoder().encode(str);
-        var binary = "";
-        for (var i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-        return btoa(binary);
+        if (window.TextEncoder) {
+          var bytes = new TextEncoder().encode(str);
+          var binary = "";
+          for (var i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+          return btoa(binary);
+        }
+        return btoa(str);
       }
     }
 
@@ -757,7 +717,7 @@
         .then(function(response) {
           if (response.status === 404) return { exists: false, sha: null, cards: [] };
           if (!response.ok) {
-            return response.text().then(function(t) { throw new Error("GitHub dosyası okunamadı: " + response.status + " " + t); });
+            return response.text().then(function(t) { throw new Error("GitHub dosyası okunamadı. HTTP " + response.status + "\n" + t); });
           }
           return response.json().then(function(data) {
             var text = "";
@@ -782,60 +742,83 @@
         body: JSON.stringify(body)
       }).then(function(response) {
         if (!response.ok) {
-          return response.text().then(function(t) { throw new Error("GitHub'a yazılamadı: " + response.status + " " + t); });
+          return response.text().then(function(t) { throw new Error("GitHub'a yazılamadı. HTTP " + response.status + "\n" + t); });
         }
         return response.json();
       });
     }
 
-    function saveCardsToGithub(manual) {
-      if (!activeUser) return;
-      saveGithubSettings();
+    function saveCardsToGithub(manual, overwrite) {
+      if (!activeUser || isSavingGithub) return;
       if (!validateGithubSettings(manual)) return;
       var path = getGithubDataPath();
-      showGithubStatus("GitHub dosyası hazırlanıyor: " + path, "info");
+      isSavingGithub = true;
+      document.getElementById("saveButton").disabled = true;
+      setGithubStatus("GitHub'a kaydediliyor: " + path, "info");
 
       return getGithubFile(path)
         .then(function(fileObj) {
-          var githubCards = fileObj.cards || [];
-          var merged = mergeCards(githubCards, cards);
-          cards = merged;
-          saveCards(false);
+          // Normal kayıt/içe aktarma sırasında mevcut GitHub kartlarıyla birleştirir.
+          // Silme işlemlerinde overwrite=true gelir ve JSON dosyası mevcut listeyle birebir güncellenir.
+          if (overwrite) {
+            cards = normalizeCards(cards);
+          } else {
+            cards = mergeCards(fileObj.cards || [], cards);
+          }
+          saveLocalCards(false);
           var obj = buildExportObject();
-          obj.version = "github-pages-api-persistent-v3";
           obj.savedToGithubAt = new Date().toISOString();
-          obj.dataFile = path;
-          obj.cards = merged;
-          var jsonText = JSON.stringify(obj, null, 2);
-          return putGithubFile(path, jsonText, fileObj.sha);
+          obj.cards = cards;
+          return putGithubFile(path, JSON.stringify(obj, null, 2), fileObj.sha);
         })
         .then(function() {
           renderList();
-          showGithubStatus("Kalıcı kayıt tamamlandı. Kartlar GitHub reposunda " + path + " dosyasına yazıldı.", "ok");
-          showDataInfo("Kartlar GitHub'da kalıcı olarak tutuluyor: " + path, "ok");
+          setGithubStatus("Kalıcı JSON kayıt başarılı. Dosya güncellendi: " + path, "ok");
         })
         .catch(function(err) {
-          showGithubStatus(err.message || String(err), "error");
-          if (manual) alert("GitHub kaydı yapılamadı. Token yetkisini ve repo/branch bilgisini kontrol edin.");
+          var msg = err && err.message ? err.message : String(err);
+          setGithubStatus("GitHub kaydı yapılamadı. Kart bu cihazda yerel olarak duruyor.\n\nKontrol edilecekler:\n1) index.html içinde owner/repo/branch/token doğru mu?\n2) Token için Contents: Read and write yetkisi var mı?\n3) Repo adı ve branch adı doğru mu?\n4) Token süresi dolmuş olabilir mi?\n\nTeknik hata:\n" + msg, "error");
+          if (manual) alert("GitHub kaydı yapılamadı. Sayfadaki kırmızı hata kutusunu kontrol edin.");
+        })
+        .then(function() {
+          isSavingGithub = false;
+          document.getElementById("saveButton").disabled = false;
         });
     }
 
-    function testGithubSettings() {
-      saveGithubSettings();
-      if (!validateGithubSettings(true)) return;
-      var url = "https://api.github.com/repos/" + encodeURIComponent(githubSettings.owner) + "/" + encodeURIComponent(githubSettings.repo);
-      showGithubStatus("GitHub bağlantısı test ediliyor...", "info");
-      fetch(url, { headers: githubHeaders(), cache: "no-store" })
-        .then(function(response) {
-          if (!response.ok) throw new Error("Bağlantı başarısız: " + response.status);
-          return response.json();
-        })
-        .then(function(repo) {
-          showGithubStatus("Bağlantı başarılı. Repo bulundu: " + repo.full_name + ". Şimdi 'GitHub'a Kalıcı Kaydet' butonunu kullanabilirsiniz.", "ok");
-        })
-        .catch(function(err) {
-          showGithubStatus(err.message || String(err), "error");
-        });
+    function renderList() {
+      document.getElementById("count").textContent = "(" + cards.length + " kart)";
+      var list = document.getElementById("cardList");
+      list.innerHTML = "";
+      if (cards.length === 0) {
+        var empty = document.createElement("p");
+        empty.className = "small";
+        empty.textContent = "Bu kullanıcı için henüz kart eklenmedi.";
+        list.appendChild(empty);
+        return;
+      }
+      for (var i = 0; i < cards.length; i++) {
+        var card = cards[i];
+        var div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = "<strong>" + escapeHtml(card.question) + "</strong><br>" +
+          "<span class='small'>" + escapeHtml(card.answer).slice(0, 140) + (card.answer.length > 140 ? "..." : "") + "</span><br>" +
+          "<span class='small'>Dosya: data/" + escapeHtml(activeUser.username) + ".json</span><br>" +
+          "<button class='danger' onclick='deleteCard(" + i + ")'>Sil</button>";
+        list.appendChild(div);
+      }
+    }
+
+    function escapeHtml(text) {
+      return String(text).replace(/[&<>\'\"]/g, function(char) {
+        return {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[char];
+      });
     }
 
     document.addEventListener("DOMContentLoaded", function() {
