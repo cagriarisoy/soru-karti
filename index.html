@@ -197,7 +197,8 @@
 
     <button id="loginButton" onclick="login()" disabled>Giriş Yap</button>
 
-    
+    <p class="small">Varsayılan deneme kullanıcıları: <strong>admin / 1234</strong>, <strong>ogrenci1 / 1234</strong>, <strong>ogrenci2 / 1234</strong>.</p>
+    <p class="small">Not: Bu sürüm GitHub API ile <strong>data/kullaniciadi.json</strong> dosyasına commit atarak kalıcı kayıt yapabilir. Token bilgisi sayfada gösterilmez; HTML içindeki ayar bölümünden okunur.</p>
   </div>
 
   <div class="container hidden" id="appPanel">
@@ -218,12 +219,11 @@
 
     <div class="settings-box">
       <h2>Kalıcı GitHub Kaydı</h2>
-      <p class="small">Kartlar <span id="dataPathPreview" class="muted-code">data/kullanici.json</span> dosyasına yazılır. Token ayarlanırsa kart ekledikçe GitHub reposuna otomatik kaydedilir.</p>
+      <p class="small">Kartlar <span id="dataPathPreview" class="muted-code">data/kullanici.json</span> dosyasına yazılır. Token bilgisi ekranda gösterilmez; HTML içindeki <strong>DEFAULT_GITHUB_SETTINGS</strong> bölümünden okunur.</p>
       <div class="settings-grid">
         <label><strong>GitHub Owner</strong><input id="ghOwner" type="text" placeholder="GitHub kullanıcı/organizasyon adı" /></label>
         <label><strong>Repository</strong><input id="ghRepo" type="text" placeholder="Repo adı" /></label>
         <label><strong>Branch</strong><input id="ghBranch" type="text" value="main" placeholder="main" /></label>
-        <label><strong>GitHub Token</strong><input id="ghToken" type="password" placeholder="Fine-grained token veya klasik PAT" /></label>
       </div>
       <label class="checkbox-line"><input id="ghAutoSave" type="checkbox" checked /> Kart kaydedince otomatik olarak GitHub'a yaz</label>
       <div class="row">
@@ -274,17 +274,22 @@
   <script>
     var userConfig = {
       users: [
-        { username: "ffa", displayName: "Yönetici", role: "admin", password: "1234" },
-        { username: "beyza", displayName: "Öğrenci 1", role: "student", password: "1234" },
-        { username: "cagri", displayName: "Öğrenci 2", role: "student", password: "1234" }
+        { username: "ffa", displayName: "Yönetici", role: "admin", password: "1234****" },
+        { username: "beyza", displayName: "Öğrenci 1", role: "student", password: "1234****" },
+        { username: "cagri", displayName: "Öğrenci 2", role: "student", password: "1234****" }
       ]
     };
 
     var DEFAULT_GITHUB_SETTINGS = {
-      owner: "",
-      repo: "",
+      // GitHub Pages adresinden owner/repo otomatik tahmin edilebilir.
+      // İsterseniz owner ve repo alanlarını burada da sabitleyebilirsiniz.
+      owner: "cagriarisoy",
+      repo: "soru-karti",
       branch: "main",
-      token: "",
+
+      
+      token: "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",
+
       autoSave: true
     };
 
@@ -793,7 +798,7 @@
         if (saved.owner) githubSettings.owner = saved.owner;
         if (saved.repo) githubSettings.repo = saved.repo;
         if (saved.branch) githubSettings.branch = saved.branch;
-        if (saved.token) githubSettings.token = saved.token;
+        // Token artık formdan/localStorage'dan okunmaz; HTML içindeki DEFAULT_GITHUB_SETTINGS.token kullanılır.
         if (typeof saved.autoSave === "boolean") githubSettings.autoSave = saved.autoSave;
       } catch (e) {}
       fillGithubSettingsForm();
@@ -803,13 +808,11 @@
       var owner = document.getElementById("ghOwner");
       var repo = document.getElementById("ghRepo");
       var branch = document.getElementById("ghBranch");
-      var token = document.getElementById("ghToken");
       var autoSave = document.getElementById("ghAutoSave");
       if (!owner) return;
       owner.value = githubSettings.owner || "";
       repo.value = githubSettings.repo || "";
       branch.value = githubSettings.branch || "main";
-      token.value = githubSettings.token || "";
       autoSave.checked = githubSettings.autoSave !== false;
     }
 
@@ -818,14 +821,19 @@
         owner: String(document.getElementById("ghOwner").value || "").trim(),
         repo: String(document.getElementById("ghRepo").value || "").trim(),
         branch: String(document.getElementById("ghBranch").value || "main").trim() || "main",
-        token: String(document.getElementById("ghToken").value || "").trim(),
+        token: DEFAULT_GITHUB_SETTINGS.token || "",
         autoSave: document.getElementById("ghAutoSave").checked
       };
       try {
-        localStorage.setItem(getGithubSettingsKey(), JSON.stringify(githubSettings));
+        localStorage.setItem(getGithubSettingsKey(), JSON.stringify({
+          owner: githubSettings.owner,
+          repo: githubSettings.repo,
+          branch: githubSettings.branch,
+          autoSave: githubSettings.autoSave
+        }));
       } catch (e) {}
       updateDataPathPreview();
-      showGithubStatus("GitHub ayarları kaydedildi. Bundan sonra kartlar data/" + activeUser.username + ".json dosyasına commit olarak yazılabilir.", "ok");
+      showGithubStatus("GitHub ayarları kaydedildi. Token ekranda gösterilmeden HTML içinden kullanılacak.", "ok");
     }
 
     function updateDataPathPreview() {
@@ -840,9 +848,14 @@
       box.textContent = message;
     }
 
+    function hasConfiguredToken() {
+      var t = String(githubSettings.token || "").trim();
+      return t && t !== "BURAYA_GITHUB_TOKEN_YAZIN";
+    }
+
     function validateGithubSettings(showAlert) {
-      if (!githubSettings.owner || !githubSettings.repo || !githubSettings.branch || !githubSettings.token) {
-        var msg = "GitHub'a yazmak için owner, repo, branch ve token alanları doldurulmalıdır.";
+      if (!githubSettings.owner || !githubSettings.repo || !githubSettings.branch || !hasConfiguredToken()) {
+        var msg = "GitHub'a yazmak için owner, repo, branch alanları ve HTML içindeki DEFAULT_GITHUB_SETTINGS.token değeri doldurulmalıdır.";
         showGithubStatus(msg, "error");
         if (showAlert) alert(msg);
         return false;
