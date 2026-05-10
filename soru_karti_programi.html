@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Soru Kartı Programı</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+      color: #222;
+    }
+    .container {
+      max-width: 850px;
+      margin: auto;
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    h1 { text-align: center; }
+    textarea, input {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      margin-bottom: 14px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    textarea { min-height: 90px; resize: vertical; }
+    button {
+      padding: 11px 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 15px;
+      margin: 5px 4px 5px 0;
+      background: #2563eb;
+      color: white;
+    }
+    button.secondary { background: #475569; }
+    button.danger { background: #dc2626; }
+    button.success { background: #16a34a; }
+    .card-box {
+      margin-top: 24px;
+      padding: 20px;
+      border-radius: 14px;
+      background: #eef2ff;
+      min-height: 140px;
+    }
+    .question {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 16px;
+    }
+    .answer {
+      display: none;
+      font-size: 18px;
+      padding: 14px;
+      background: white;
+      border-radius: 10px;
+      white-space: pre-wrap;
+    }
+    .list {
+      margin-top: 24px;
+    }
+    .item {
+      padding: 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+    .small { color: #64748b; font-size: 14px; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Soru Kartı Programı</h1>
+    <p class="small">Sorunu ve cevabını yaz, kaydet. Daha sonra karışık soru çekip cevabı açabilirsin. Veriler bu tarayıcıda saklanır.</p>
+
+    <label><strong>Soru</strong></label>
+    <textarea id="questionInput" placeholder="Örn: Kronik migren tanımı nedir?"></textarea>
+
+    <label><strong>Cevap</strong></label>
+    <textarea id="answerInput" placeholder="Örn: Ayda en az 15 gün baş ağrısı ve bunun en az 8 günü migren özellikli..."></textarea>
+
+    <div class="row">
+      <button onclick="saveCard()">Kartı Kaydet</button>
+      <button class="success" onclick="showRandomCard()">Karışık Soru Getir</button>
+      <button class="secondary" onclick="exportCards()">Kartları Dışa Aktar</button>
+      <button class="secondary" onclick="document.getElementById('importFile').click()">Kartları İçe Aktar</button>
+      <input id="importFile" type="file" accept="application/json" style="display:none" onchange="importCards(event)" />
+      <button class="danger" onclick="clearAllCards()">Tümünü Sil</button>
+    </div>
+
+    <div class="card-box">
+      <div id="currentQuestion" class="question">Henüz soru seçilmedi.</div>
+      <div id="currentAnswer" class="answer"></div>
+      <button onclick="showAnswer()">Cevabı Göster</button>
+    </div>
+
+    <div class="list">
+      <h2>Kayıtlı Kartlar <span id="count" class="small"></span></h2>
+      <div id="cardList"></div>
+    </div>
+  </div>
+
+  <script>
+    let cards = JSON.parse(localStorage.getItem("flashcards_tr") || "[]");
+    let currentCard = null;
+
+    function saveCards() {
+      localStorage.setItem("flashcards_tr", JSON.stringify(cards));
+      renderList();
+    }
+
+    function saveCard() {
+      const question = document.getElementById("questionInput").value.trim();
+      const answer = document.getElementById("answerInput").value.trim();
+
+      if (!question || !answer) {
+        alert("Lütfen hem soru hem cevap yaz.");
+        return;
+      }
+
+      cards.push({ question, answer, createdAt: new Date().toISOString() });
+      document.getElementById("questionInput").value = "";
+      document.getElementById("answerInput").value = "";
+      saveCards();
+    }
+
+    function showRandomCard() {
+      if (cards.length === 0) {
+        alert("Önce en az bir kart eklemelisin.");
+        return;
+      }
+      const randomIndex = Math.floor(Math.random() * cards.length);
+      currentCard = cards[randomIndex];
+      document.getElementById("currentQuestion").textContent = currentCard.question;
+      const answerBox = document.getElementById("currentAnswer");
+      answerBox.textContent = currentCard.answer;
+      answerBox.style.display = "none";
+    }
+
+    function showAnswer() {
+      if (!currentCard) {
+        alert("Önce karışık soru getir.");
+        return;
+      }
+      document.getElementById("currentAnswer").style.display = "block";
+    }
+
+    function deleteCard(index) {
+      if (confirm("Bu kart silinsin mi?")) {
+        cards.splice(index, 1);
+        saveCards();
+      }
+    }
+
+    function clearAllCards() {
+      if (confirm("Tüm kartları silmek istediğine emin misin?")) {
+        cards = [];
+        currentCard = null;
+        localStorage.removeItem("flashcards_tr");
+        document.getElementById("currentQuestion").textContent = "Henüz soru seçilmedi.";
+        document.getElementById("currentAnswer").textContent = "";
+        document.getElementById("currentAnswer").style.display = "none";
+        renderList();
+      }
+    }
+
+    function exportCards() {
+      const blob = new Blob([JSON.stringify(cards, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "soru_kartlari.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importCards(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (!Array.isArray(imported)) throw new Error();
+          cards = cards.concat(imported.filter(c => c.question && c.answer));
+          saveCards();
+          alert("Kartlar içe aktarıldı.");
+        } catch {
+          alert("Geçerli bir kart dosyası seçilmedi.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function renderList() {
+      document.getElementById("count").textContent = `(${cards.length} kart)`;
+      const list = document.getElementById("cardList");
+      list.innerHTML = "";
+      cards.forEach((card, index) => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <strong>${escapeHtml(card.question)}</strong><br>
+          <span class="small">${escapeHtml(card.answer).slice(0, 120)}${card.answer.length > 120 ? "..." : ""}</span><br>
+          <button class="danger" onclick="deleteCard(${index})">Sil</button>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/[&<>'"]/g, function(char) {
+        return {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[char];
+      });
+    }
+
+    renderList();
+  </script>
+</body>
+</html>
