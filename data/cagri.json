@@ -4,7 +4,7 @@
   "username": "cagri",
   "displayName": "Öğrenci 2",
   "dataFile": "data/cagri.json",
-  "exportedAt": "2026-05-10T19:37:16.122Z",
+  "exportedAt": "2026-05-10T19:37:21.227Z",
   "cards": [
     {
       "id": "cagri_1778441835554_146374",
@@ -15,5 +15,5 @@
       "updatedAt": "2026-05-10T19:37:15.554Z"
     }
   ],
-  "savedToGithubAt": "2026-05-10T19:37:16.122Z"
+  "savedToGithubAt": "2026-05-10T19:37:21.227Z"
 }
