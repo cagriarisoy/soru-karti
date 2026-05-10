@@ -20,7 +20,8 @@
       border-radius: 16px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.08);
     }
-    h1 { text-align: center; margin-top: 0; }
+    h1 { text-align: center; margin-top: 4px; }
+    h2 { margin-bottom: 8px; }
     textarea, input {
       width: 100%;
       padding: 12px;
@@ -33,18 +34,19 @@
     }
     textarea { min-height: 90px; resize: vertical; }
     button {
-      padding: 15px 24px;
+      padding: 11px 16px;
       border: none;
-      border-radius: 14px;
+      border-radius: 10px;
       cursor: pointer;
-      font-size: 18px;
-      margin: 5px 6px 5px 0;
+      font-size: 15px;
+      margin: 5px 4px 5px 0;
       background: #2563eb;
       color: white;
     }
     button.secondary { background: #475569; }
     button.danger { background: #dc2626; }
     button.success { background: #16a34a; }
+    button.light { background: #e2e8f0; color: #0f172a; }
     button:disabled { opacity: 0.55; cursor: not-allowed; }
     .card-box {
       margin-top: 24px;
@@ -77,85 +79,95 @@
     }
     .small { color: #64748b; font-size: 14px; }
     .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    .hidden { display: none !important; }
+    .hidden { display: none; }
+    .status {
+      padding: 12px;
+      background: #fef9c3;
+      border: 1px solid #fde68a;
+      border-radius: 12px;
+      margin: 12px 0;
+      font-size: 14px;
+      color: #713f12;
+    }
+    .ok {
+      background: #dcfce7;
+      border-color: #86efac;
+      color: #14532d;
+    }
+    .error {
+      background: #fee2e2;
+      border-color: #fecaca;
+      color: #7f1d1d;
+    }
     .topbar {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       gap: 12px;
       flex-wrap: wrap;
-      align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
-    .status {
+    .user-pill {
+      background: #eef2ff;
+      color: #1e3a8a;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .export-area {
       margin-top: 12px;
       padding: 12px;
-      border-radius: 10px;
-      background: #fff7ed;
-      border: 1px solid #fed7aa;
-      color: #9a3412;
-      font-size: 14px;
-      white-space: pre-wrap;
-      word-break: break-word;
+      border-radius: 12px;
+      border: 1px dashed #94a3b8;
+      background: #f8fafc;
     }
-    .status.ok {
-      background: #ecfdf5;
-      border-color: #bbf7d0;
-      color: #166534;
-    }
-    .status.error {
-      background: #fef2f2;
-      border-color: #fecaca;
-      color: #991b1b;
-    }
-    .status.info {
-      background: #eff6ff;
-      border-color: #bfdbfe;
-      color: #1d4ed8;
-    }
-    .export-box {
-      width: 100%;
-      min-height: 130px;
-      margin-top: 10px;
-      font-family: Consolas, monospace;
+    .export-area textarea {
+      min-height: 160px;
+      font-family: monospace;
       font-size: 13px;
-      display: none;
     }
     @media (max-width: 600px) {
       body { padding: 10px; }
       .container { padding: 16px; border-radius: 12px; }
+      h1 { font-size: 24px; }
       button { width: 100%; margin-right: 0; }
       .row { display: block; }
-      .topbar { display: block; }
+      .question { font-size: 20px; }
     }
   </style>
 </head>
 <body>
-  <div id="loginPanel" class="container">
+  <div class="container" id="loginPanel">
     <h1>Soru Kartı Programı</h1>
-    <p class="small">Kullanıcı adı ve şifre ile giriş yapın. Her kullanıcının kartları GitHub reposunda <strong>data/kullaniciadi.json</strong> dosyasında kalıcı tutulur.</p>
+    <p class="small">GitHub Pages uyumlu girişli sürüm. Her kullanıcı kendi soru kartlarını ayrı olarak görür.</p>
+
+    <div id="loginMessage" class="status">Kullanıcı bilgileri yükleniyor...</div>
 
     <label><strong>Kullanıcı Adı</strong></label>
-    <input id="usernameInput" type="text" placeholder="Örn: ogrenci1" autocomplete="username" />
+    <input id="usernameInput" type="text" autocomplete="username" placeholder="Örn: ogrenci1" disabled />
 
     <label><strong>Şifre</strong></label>
-    <input id="passwordInput" type="password" placeholder="Şifre" autocomplete="current-password" />
+    <input id="passwordInput" type="password" autocomplete="current-password" placeholder="Şifrenizi yazın" disabled />
 
-    <button id="loginButton" onclick="login()">Giriş Yap</button>
-    <div id="loginMessage" class="status info">Kullanıcı bilgileri yükleniyor...</div>
+    <button id="loginButton" onclick="login()" disabled>Giriş Yap</button>
+
+  
   </div>
 
-  <div id="appPanel" class="container hidden">
+  <div class="container hidden" id="appPanel">
     <div class="topbar">
       <div>
         <h1>Soru Kartı Programı</h1>
-        <div class="small">Aktif kullanıcı: <strong id="activeUser"></strong></div>
-        <div class="small">Kalıcı dosya: <strong id="dataPathPreview"></strong></div>
+        <p class="small">Sorunu ve cevabını yaz, kaydet. Daha sonra karışık soru çekip cevabı açabilirsin.</p>
       </div>
-      <button class="secondary" onclick="logout()">Çıkış Yap</button>
+      <div class="row">
+        <span id="activeUser" class="user-pill"></span>
+        <button class="light" onclick="logout()">Çıkış Yap</button>
+      </div>
     </div>
 
     <div id="storageWarning" class="status hidden"></div>
-    <div id="githubStatus" class="status info">GitHub JSON kayıt durumu burada görünecek.</div>
 
     <label><strong>Soru</strong></label>
     <textarea id="questionInput" placeholder="Örn: Kronik migren tanımı nedir?"></textarea>
@@ -164,14 +176,19 @@
     <textarea id="answerInput" placeholder="Örn: Ayda en az 15 gün baş ağrısı ve bunun en az 8 günü migren özellikli..."></textarea>
 
     <div class="row">
-      <button id="saveButton" onclick="saveCard()">Kartı Kaydet</button>
+      <button onclick="saveCard()">Kartı Kaydet</button>
       <button class="success" onclick="showRandomCard()">Karışık Soru Getir</button>
-      <button class="secondary" onclick="exportCards()">Kartları Dışa Aktar</button>
-      <button class="secondary" onclick="document.getElementById('importFile').click()">Kartları İçe Aktar</button>
-      <input id="importFile" type="file" accept="application/json,.json" style="display:none" onchange="importJson(event)" />
-      <button class="danger" onclick="clearAllCards()">Tümünü Sil</button>
+      <button class="secondary" onclick="exportCards()">Kartlarımı Dışa Aktar</button>
+      <button class="secondary" onclick="document.getElementById('importFile').click()">Kartlarımı İçe Aktar</button>
+      <input id="importFile" type="file" accept="application/json" style="display:none" onchange="importCards(event)" />
+      <button class="danger" onclick="clearAllCards()">Kartlarımı Sil</button>
     </div>
-    <textarea id="exportFallback" class="export-box" readonly></textarea>
+
+    <div id="exportArea" class="export-area hidden">
+      <strong>Dışa aktarma metni</strong>
+      <p class="small">iPhone indirmeyi engellerse aşağıdaki JSON metnini kopyalayıp kendi dosyanıza kaydedebilirsiniz.</p>
+      <textarea id="exportText" readonly></textarea>
+    </div>
 
     <div class="card-box">
       <div id="currentQuestion" class="question">Henüz soru seçilmedi.</div>
@@ -186,108 +203,58 @@
   </div>
 
   <script>
-   
-    var DEFAULT_GITHUB_SETTINGS = {
-      owner: "cagriarisoy",              
-      repo: "soru-karti",               
-      branch: "main",          
-      token: "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",      
-      autoSave: true
-    };
-
     var userConfig = {
+      salt: "soru-karti-v1",
       users: [
-        { username: "ffa", displayName: "Yönetici", role: "admin", password: "1234*qwerty" },
-        { username: "beyza", displayName: "Öğrenci 1", role: "student", password: "1234*qwerty" },
-        { username: "cagri", displayName: "Öğrenci 2", role: "student", password: "1234*qwerty" }
+        { username: "ffa", displayName: "Yönetici", role: "admin", password: "1234", passwordHash: "00b66a12e47976c4946388ead49ea7d0dabc1288d047fc2e8d69e0d095a66ffa" },
+        { username: "beyza", displayName: "Öğrenci 1", role: "student", password: "1234", passwordHash: "1671203b0bd7af093b21524c0aee64a09afa2d54426ea387da16df5b97f6ffe1" },
+        { username: "cagri", displayName: "Öğrenci 2", role: "student", password: "1234", passwordHash: "92b36122a379edb7a71978360b0af25ea4121c9ab7cd3e35a36d21c72965616b" }
       ]
     };
 
-    var githubSettings = { owner: "", repo: "", branch: "main", token: "", autoSave: true };
     var activeUser = null;
     var cards = [];
     var currentCard = null;
-    var isSavingGithub = false;
-
-    function normalizeUsername(text) {
-      return String(text || "").trim().toLowerCase();
-    }
+    var storageAvailable = true;
 
     function setLoginMessage(text, type) {
       var box = document.getElementById("loginMessage");
-      box.className = "status " + (type || "info");
+      box.className = "status" + (type ? " " + type : "");
       box.textContent = text;
     }
 
-    function setGithubStatus(text, type) {
-      var box = document.getElementById("githubStatus");
-      box.className = "status " + (type || "info");
-      box.textContent = text;
-    }
-
-    function inferGithubPagesSettings() {
-      var inferred = { owner: "", repo: "" };
-      try {
-        var host = window.location.hostname || "";
-        if (host.indexOf("github.io") !== -1) {
-          inferred.owner = host.split(".")[0] || "";
-          var parts = window.location.pathname.split("/").filter(function(x) { return x; });
-          if (parts.length > 0) inferred.repo = parts[0];
-          else inferred.repo = inferred.owner ? inferred.owner + ".github.io" : "";
-        }
-      } catch (e) {}
-      return inferred;
-    }
-
-    function loadGithubSettings() {
-      var inferred = inferGithubPagesSettings();
-      githubSettings.owner = DEFAULT_GITHUB_SETTINGS.owner || inferred.owner || "";
-      githubSettings.repo = DEFAULT_GITHUB_SETTINGS.repo || inferred.repo || "";
-      githubSettings.branch = DEFAULT_GITHUB_SETTINGS.branch || "main";
-      githubSettings.token = DEFAULT_GITHUB_SETTINGS.token || "";
-      githubSettings.autoSave = DEFAULT_GITHUB_SETTINGS.autoSave !== false;
-    }
-
-    function hasConfiguredToken() {
-      var t = String(githubSettings.token || "").trim();
-      return !!t && t !== "BURAYA_GITHUB_TOKEN_YAZIN";
-    }
-
-    function validateGithubSettings(manual) {
-      loadGithubSettings();
-      var missing = [];
-      if (!githubSettings.owner) missing.push("owner");
-      if (!githubSettings.repo) missing.push("repo");
-      if (!githubSettings.branch) missing.push("branch");
-      if (!hasConfiguredToken()) missing.push("token");
-      if (missing.length > 0) {
-        var msg = "GitHub'a kalıcı kayıt yapılamadı. index.html içindeki DEFAULT_GITHUB_SETTINGS bölümünde eksik alan var: " + missing.join(", ") + ".";
-        setGithubStatus(msg, "error");
-        if (manual) alert(msg);
-        return false;
-      }
-      return true;
+    function enableLoginForm() {
+      document.getElementById("usernameInput").disabled = false;
+      document.getElementById("passwordInput").disabled = false;
+      document.getElementById("loginButton").disabled = false;
     }
 
     function loadUsers() {
-      loadGithubSettings();
       if (!window.fetch) {
-        setLoginMessage("Tarayıcı fetch desteği vermiyor. Gömülü kullanıcılar kullanılacak.", "info");
+        setLoginMessage("Tarayıcı fetch desteği vermiyor. Gömülü demo kullanıcıları kullanılacak.", "status");
+        enableLoginForm();
         restoreSession();
         return;
       }
-      fetch("users.json?v=" + Date.now(), { cache: "no-store" })
+
+      fetch("users.json", { cache: "no-store" })
         .then(function(response) {
-          if (!response.ok) throw new Error("users.json okunamadı");
+          if (!response.ok) {
+            throw new Error("users.json okunamadı");
+          }
           return response.json();
         })
         .then(function(data) {
-          if (data && data.users && data.users.length > 0) userConfig = data;
+          if (data && data.users && data.users.length > 0) {
+            userConfig = data;
+          }
           setLoginMessage("Kullanıcı bilgileri yüklendi. Giriş yapabilirsiniz.", "ok");
+          enableLoginForm();
           restoreSession();
         })
         .catch(function() {
-          setLoginMessage("users.json okunamadı. Gömülü demo kullanıcıları kullanılacak.", "info");
+          setLoginMessage("users.json okunamadı. Gömülü demo kullanıcıları kullanılacak. GitHub Pages'te yayınlandığında users.json dosyasının yüklü olduğundan emin olun.", "status");
+          enableLoginForm();
           restoreSession();
         });
     }
@@ -297,7 +264,9 @@
         var savedUsername = sessionStorage.getItem("soru_karti_active_user");
         if (savedUsername) {
           var found = findUser(savedUsername);
-          if (found) loginAs(found);
+          if (found) {
+            loginAs(found);
+          }
         }
       } catch (e) {}
     }
@@ -305,28 +274,89 @@
     function findUser(username) {
       var clean = normalizeUsername(username);
       for (var i = 0; i < userConfig.users.length; i++) {
-        if (normalizeUsername(userConfig.users[i].username) === clean) return userConfig.users[i];
+        if (normalizeUsername(userConfig.users[i].username) === clean) {
+          return userConfig.users[i];
+        }
       }
       return null;
     }
 
+    function normalizeUsername(text) {
+      return String(text || "").trim().toLowerCase();
+    }
+
     function login() {
       var username = normalizeUsername(document.getElementById("usernameInput").value);
-      var password = String(document.getElementById("passwordInput").value || "").trim();
+      var password = document.getElementById("passwordInput").value;
+
       if (!username || !password) {
         setLoginMessage("Lütfen kullanıcı adı ve şifre girin.", "error");
         return;
       }
+
       var user = findUser(username);
       if (!user) {
         setLoginMessage("Kullanıcı bulunamadı.", "error");
         return;
       }
-      if (String(user.password || "").trim() !== password) {
-        setLoginMessage("Şifre hatalı.", "error");
-        return;
-      }
-      loginAs(user);
+
+      checkPassword(user, username, password)
+        .then(function(isCorrect) {
+          if (isCorrect) {
+            loginAs(user);
+          } else {
+            setLoginMessage("Şifre hatalı. Varsayılan deneme şifresi: 1234", "error");
+          }
+        })
+        .catch(function() {
+          setLoginMessage("Şifre kontrolü yapılamadı. Demo kullanıcıları için 1234 şifresi kullanılabilir.", "error");
+        });
+    }
+
+    function checkPassword(user, username, password) {
+      return new Promise(function(resolve, reject) {
+        var typedPassword = String(password || "").trim();
+
+        // GitHub Pages statik yayın olduğu için bu sürüm demo amaçlıdır.
+        // users.json içinde düz metin password varsa önce onu kontrol eder.
+        // Böylece iPhone Safari/Chrome ve yerel dosya açılışlarında WebCrypto sorunları girişe engel olmaz.
+        if (typeof user.password !== "undefined") {
+          resolve(String(user.password).trim() === typedPassword);
+          return;
+        }
+
+        if (!user.passwordHash) {
+          resolve(false);
+          return;
+        }
+
+        hashPassword(username, typedPassword)
+          .then(function(hash) { resolve(hash === user.passwordHash); })
+          .catch(reject);
+      });
+    }
+
+    function hashPassword(username, password) {
+      var raw = String(userConfig.salt || "soru-karti-v1") + ":" + normalizeUsername(username) + ":" + String(password).trim();
+      return sha256(raw);
+    }
+
+    function sha256(text) {
+      return new Promise(function(resolve, reject) {
+        if (!window.crypto || !window.crypto.subtle || !window.TextEncoder) {
+          reject(new Error("WebCrypto desteklenmiyor"));
+          return;
+        }
+        var data = new TextEncoder().encode(text);
+        window.crypto.subtle.digest("SHA-256", data).then(function(buffer) {
+          var bytes = new Uint8Array(buffer);
+          var hex = "";
+          for (var i = 0; i < bytes.length; i++) {
+            hex += ("00" + bytes[i].toString(16)).slice(-2);
+          }
+          resolve(hex);
+        }).catch(reject);
+      });
     }
 
     function loginAs(user) {
@@ -335,20 +365,26 @@
         displayName: user.displayName || user.username,
         role: user.role || "user"
       };
-      try { sessionStorage.setItem("soru_karti_active_user", activeUser.username); } catch (e) {}
+
+      try {
+        sessionStorage.setItem("soru_karti_active_user", activeUser.username);
+      } catch (e) {}
+
       document.getElementById("loginPanel").className = "container hidden";
       document.getElementById("appPanel").className = "container";
       document.getElementById("activeUser").textContent = activeUser.displayName + " (" + activeUser.username + ")";
-      document.getElementById("dataPathPreview").textContent = getGithubDataPath();
       document.getElementById("passwordInput").value = "";
       loadCardsForUser();
+      renderList();
     }
 
     function logout() {
       activeUser = null;
       cards = [];
       currentCard = null;
-      try { sessionStorage.removeItem("soru_karti_active_user"); } catch (e) {}
+      try {
+        sessionStorage.removeItem("soru_karti_active_user");
+      } catch (e) {}
       document.getElementById("appPanel").className = "container hidden";
       document.getElementById("loginPanel").className = "container";
       document.getElementById("currentQuestion").textContent = "Henüz soru seçilmedi.";
@@ -358,80 +394,35 @@
     }
 
     function getStorageKey() {
-      return activeUser ? "soru_kartlari_" + activeUser.username : "soru_kartlari_guest";
-    }
-
-    function getGithubDataPath() {
-      return "data/" + activeUser.username + ".json";
+      if (!activeUser) return "soru_kartlari_v2_guest";
+      return "soru_kartlari_v2_" + activeUser.username;
     }
 
     function loadCardsForUser() {
-      cards = [];
-      currentCard = null;
-      renderList();
-      setGithubStatus("Kartlar yükleniyor: " + getGithubDataPath(), "info");
-      var localCards = loadLocalCards();
-
-      // Token varsa doğrudan GitHub API'den oku; bu yöntem Pages önbelleğinden daha günceldir.
-      if (validateGithubSettings(false) && window.fetch) {
-        getGithubFile(getGithubDataPath())
-          .then(function(fileObj) {
-            cards = mergeCards(fileObj.cards || [], localCards || []);
-            saveLocalCards(false);
-            renderList();
-            setGithubStatus("Kartlar GitHub dosyasından yüklendi: " + getGithubDataPath(), "ok");
-          })
-          .catch(function(err) {
-            cards = localCards;
-            renderList();
-            setGithubStatus("GitHub dosyası okunamadı; bu cihazdaki yerel kayıtlar yüklendi. Yeni kart kaydedince GitHub'a yazmayı tekrar deneyecek.\nHata: " + (err.message || String(err)), "error");
-          });
-        return;
-      }
-
-      // Token yoksa statik data dosyasını okumayı dene.
-      if (window.fetch) {
-        fetch(getGithubDataPath() + "?v=" + Date.now(), { cache: "no-store" })
-          .then(function(response) {
-            if (!response.ok) throw new Error("Data dosyası bulunamadı");
-            return response.json();
-          })
-          .then(function(data) {
-            cards = mergeCards(extractCards(data), localCards);
-            saveLocalCards(false);
-            renderList();
-            setGithubStatus("Data dosyası okundu; ancak token ayarı yoksa yeni kartlar GitHub'a yazılamaz.", "info");
-          })
-          .catch(function() {
-            cards = localCards;
-            renderList();
-          });
-      } else {
-        cards = localCards;
-        renderList();
-      }
-    }
-
-    function loadLocalCards() {
       try {
         var raw = localStorage.getItem(getStorageKey()) || "[]";
-        var parsed = JSON.parse(raw);
+        cards = JSON.parse(raw);
+        if (!Array.isArray(cards)) cards = [];
+        storageAvailable = true;
         hideStorageWarning();
-        return normalizeCards(Array.isArray(parsed) ? parsed : extractCards(parsed));
       } catch (e) {
-        showStorageWarning("Tarayıcı yerel depolamaya izin vermiyor. GitHub kaydı çalışırsa kartlar yine kalıcı olur.");
-        return [];
+        cards = [];
+        storageAvailable = false;
+        showStorageWarning("Tarayıcı yerel depolamaya izin vermiyor. Kartlar bu oturumda geçici tutulacak. Çıkmadan önce dışa aktarmanız önerilir.");
       }
     }
 
-    function saveLocalCards(shouldRender) {
+    function saveCards() {
+      if (!activeUser) return;
       try {
         localStorage.setItem(getStorageKey(), JSON.stringify(cards));
+        storageAvailable = true;
         hideStorageWarning();
       } catch (e) {
-        showStorageWarning("Kartlar bu cihazda yerel olarak saklanamadı. GitHub kaydı kullanılacak.");
+        storageAvailable = false;
+        showStorageWarning("Kartlar tarayıcıya kaydedilemedi. iPhone depolamayı engelliyor olabilir. Kartlarınızı dışa aktararak saklayın.");
       }
-      if (shouldRender !== false) renderList();
+      renderList();
     }
 
     function showStorageWarning(message) {
@@ -446,35 +437,25 @@
       box.textContent = "";
     }
 
-    function makeId() {
-      var prefix = activeUser ? activeUser.username : "user";
-      return prefix + "_" + Date.now() + "_" + Math.floor(Math.random() * 1000000);
-    }
-
     function saveCard() {
-      if (!activeUser) return;
       var question = document.getElementById("questionInput").value.trim();
       var answer = document.getElementById("answerInput").value.trim();
+
       if (!question || !answer) {
         alert("Lütfen hem soru hem cevap yaz.");
         return;
       }
-      var now = new Date().toISOString();
+
       cards.push({
-        id: makeId(),
         question: question,
         answer: answer,
         owner: activeUser.username,
-        createdAt: now,
-        updatedAt: now
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       });
       document.getElementById("questionInput").value = "";
       document.getElementById("answerInput").value = "";
-      saveLocalCards(true);
-
-      if (githubSettings.autoSave) {
-        saveCardsToGithub(false, false);
-      }
+      saveCards();
     }
 
     function showRandomCard() {
@@ -499,297 +480,104 @@
     }
 
     function deleteCard(index) {
-      if (confirm("Bu kart silinsin mi? Silme işlemi GitHub JSON dosyasına da kaydedilir.")) {
+      if (confirm("Bu kart silinsin mi?")) {
         cards.splice(index, 1);
-        saveLocalCards(true);
-        saveCardsToGithub(false, true);
+        saveCards();
       }
     }
 
     function clearAllCards() {
-      if (confirm("Bu kullanıcıya ait tüm kartları silmek istediğinize emin misiniz? Bu işlem GitHub JSON dosyasına da boş liste olarak kaydedilir.")) {
+      if (confirm("Bu kullanıcıya ait tüm kartları silmek istediğine emin misin?")) {
         cards = [];
         currentCard = null;
-        try { localStorage.removeItem(getStorageKey()); } catch (e) {}
+        try {
+          localStorage.removeItem(getStorageKey());
+        } catch (e) {}
         document.getElementById("currentQuestion").textContent = "Henüz soru seçilmedi.";
         document.getElementById("currentAnswer").textContent = "";
         document.getElementById("currentAnswer").style.display = "none";
         renderList();
-        saveCardsToGithub(false, true);
       }
-    }
-
-    function normalizeCards(inputCards) {
-      var result = [];
-      for (var i = 0; i < (inputCards || []).length; i++) {
-        var c = inputCards[i];
-        if (c && c.question && c.answer) {
-          result.push({
-            id: c.id || makeId(),
-            question: String(c.question),
-            answer: String(c.answer),
-            owner: activeUser ? activeUser.username : (c.owner || ""),
-            createdAt: c.createdAt || new Date().toISOString(),
-            updatedAt: c.updatedAt || c.createdAt || new Date().toISOString()
-          });
-        }
-      }
-      return result;
-    }
-
-    function extractCards(data) {
-      if (Array.isArray(data)) return normalizeCards(data);
-      if (data && Array.isArray(data.cards)) return normalizeCards(data.cards);
-      return [];
-    }
-
-    function mergeCards(a, b) {
-      var map = {};
-      var merged = [];
-      function addList(list) {
-        for (var i = 0; i < (list || []).length; i++) {
-          var card = list[i];
-          var id = card.id || makeId();
-          card.id = id;
-          if (!map[id]) {
-            map[id] = card;
-            merged.push(card);
-          } else {
-            var oldTime = new Date(map[id].updatedAt || map[id].createdAt || 0).getTime();
-            var newTime = new Date(card.updatedAt || card.createdAt || 0).getTime();
-            if (newTime > oldTime) {
-              map[id] = card;
-              for (var j = 0; j < merged.length; j++) {
-                if (merged[j].id === id) merged[j] = card;
-              }
-            }
-          }
-        }
-      }
-      addList(a);
-      addList(b);
-      return merged;
-    }
-
-    function buildExportObject() {
-      return {
-        app: "Soru Kartı Programı",
-        version: "github-pages-api-persistent-json-buttons-v5",
-        username: activeUser.username,
-        displayName: activeUser.displayName,
-        dataFile: getGithubDataPath(),
-        exportedAt: new Date().toISOString(),
-        cards: cards
-      };
     }
 
     function exportCards() {
-      var text = JSON.stringify(buildExportObject(), null, 2);
-      downloadFile(activeUser.username + ".json", text, "application/json;charset=utf-8");
-    }
+      if (!activeUser) return;
+      var exportObject = {
+        app: "Soru Kartı Programı",
+        version: "github-pages-v1",
+        username: activeUser.username,
+        displayName: activeUser.displayName,
+        exportedAt: new Date().toISOString(),
+        cards: cards
+      };
+      var jsonText = JSON.stringify(exportObject, null, 2);
+      var filename = "soru_kartlari_" + activeUser.username + ".json";
 
-    function exportJson() {
-      exportCards();
-    }
+      document.getElementById("exportText").value = jsonText;
+      document.getElementById("exportArea").className = "export-area";
 
-    function exportTxt() {
-      var lines = [];
-      lines.push("Soru Kartı Programı");
-      lines.push("Kullanıcı: " + activeUser.username);
-      lines.push("Dışa aktarma: " + new Date().toISOString());
-      lines.push("");
-      for (var i = 0; i < cards.length; i++) {
-        lines.push((i + 1) + ". Soru: " + cards[i].question);
-        lines.push("   Cevap: " + cards[i].answer);
-        lines.push("");
-      }
-      downloadFile(activeUser.username + ".txt", lines.join("\n"), "text/plain;charset=utf-8");
-    }
-
-    function csvEscape(value) {
-      var text = String(value == null ? "" : value);
-      return '"' + text.replace(/"/g, '""') + '"';
-    }
-
-    function exportCsv() {
-      var rows = [["id", "question", "answer", "owner", "createdAt", "updatedAt"]];
-      for (var i = 0; i < cards.length; i++) {
-        rows.push([cards[i].id, cards[i].question, cards[i].answer, cards[i].owner, cards[i].createdAt, cards[i].updatedAt]);
-      }
-      var csv = rows.map(function(row) {
-        return row.map(csvEscape).join(",");
-      }).join("\n");
-      downloadFile(activeUser.username + ".csv", "\ufeff" + csv, "text/csv;charset=utf-8");
-    }
-
-    function downloadFile(filename, text, type) {
-      var fallback = document.getElementById("exportFallback");
-      fallback.style.display = "none";
-      fallback.value = "";
       try {
-        var blob = new Blob([text], { type: type });
+        var blob = new Blob([jsonText], { type: "application/json" });
         var url = URL.createObjectURL(blob);
         var a = document.createElement("a");
         a.href = url;
         a.download = filename;
         document.body.appendChild(a);
         a.click();
-        setTimeout(function() {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        }, 0);
+        document.body.removeChild(a);
+        setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
       } catch (e) {
-        fallback.style.display = "block";
-        fallback.value = text;
-        alert("İndirme başlatılamadı. İçerik aşağıdaki kutuya yazıldı; kopyalayabilirsiniz.");
+        alert("Dosya otomatik indirilemedi. Aşağıdaki JSON metnini kopyalayabilirsiniz.");
       }
     }
 
-    function importJson(event) {
-      var file = event.target.files && event.target.files[0];
-      event.target.value = "";
+    function importCards(event) {
+      var file = event.target.files[0];
       if (!file) return;
       var reader = new FileReader();
       reader.onload = function(e) {
         try {
           var imported = JSON.parse(e.target.result);
-          var importedCards = extractCards(imported);
-          if (!importedCards.length) throw new Error("Kart bulunamadı");
-          cards = mergeCards(cards, importedCards);
-          saveLocalCards(true);
-          setGithubStatus("Kartlar içe aktarıldı. GitHub JSON dosyasına kalıcı kaydediliyor...", "info");
-          saveCardsToGithub(false, false);
+          var importedCards = [];
+
+          if (Array.isArray(imported)) {
+            importedCards = imported;
+          } else if (imported && Array.isArray(imported.cards)) {
+            importedCards = imported.cards;
+          } else {
+            throw new Error("Format uygun değil");
+          }
+
+          var cleaned = [];
+          for (var i = 0; i < importedCards.length; i++) {
+            var c = importedCards[i];
+            if (c && c.question && c.answer) {
+              cleaned.push({
+                question: String(c.question),
+                answer: String(c.answer),
+                owner: activeUser.username,
+                createdAt: c.createdAt || new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              });
+            }
+          }
+
+          cards = cards.concat(cleaned);
+          saveCards();
+          alert(cleaned.length + " kart içe aktarıldı.");
         } catch (err) {
-          alert("Geçerli bir kart JSON dosyası seçilmedi.");
+          alert("Geçerli bir kart dosyası seçilmedi.");
         }
       };
       reader.readAsText(file);
-    }
-
-    function githubApiBase() {
-      return "https://api.github.com/repos/" + encodeURIComponent(githubSettings.owner) + "/" + encodeURIComponent(githubSettings.repo) + "/contents/";
-    }
-
-    function encodePath(path) {
-      return String(path).split("/").map(function(part) { return encodeURIComponent(part); }).join("/");
-    }
-
-    function githubHeaders() {
-      return {
-        "Accept": "application/vnd.github+json",
-        "Authorization": "Bearer " + githubSettings.token,
-        "X-GitHub-Api-Version": "2022-11-28",
-        "Content-Type": "application/json"
-      };
-    }
-
-    function utf8ToBase64(str) {
-      try {
-        return btoa(unescape(encodeURIComponent(str)));
-      } catch (e) {
-        if (window.TextEncoder) {
-          var bytes = new TextEncoder().encode(str);
-          var binary = "";
-          for (var i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-          return btoa(binary);
-        }
-        return btoa(str);
-      }
-    }
-
-    function base64ToUtf8(base64) {
-      try {
-        return decodeURIComponent(escape(atob(base64)));
-      } catch (e) {
-        var binary = atob(base64);
-        if (window.TextDecoder) {
-          var bytes = new Uint8Array(binary.length);
-          for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-          return new TextDecoder("utf-8").decode(bytes);
-        }
-        return binary;
-      }
-    }
-
-    function getGithubFile(path) {
-      var url = githubApiBase() + encodePath(path) + "?ref=" + encodeURIComponent(githubSettings.branch);
-      return fetch(url, { method: "GET", headers: githubHeaders(), cache: "no-store" })
-        .then(function(response) {
-          if (response.status === 404) return { exists: false, sha: null, cards: [] };
-          if (!response.ok) {
-            return response.text().then(function(t) { throw new Error("GitHub dosyası okunamadı. HTTP " + response.status + "\n" + t); });
-          }
-          return response.json().then(function(data) {
-            var text = "";
-            if (data.content) text = base64ToUtf8(String(data.content).replace(/\n/g, ""));
-            var parsed = text ? JSON.parse(text) : [];
-            return { exists: true, sha: data.sha, cards: extractCards(parsed), raw: parsed };
-          });
-        });
-    }
-
-    function putGithubFile(path, jsonText, sha) {
-      var url = githubApiBase() + encodePath(path);
-      var body = {
-        message: "Update cards for " + activeUser.username + " - " + new Date().toISOString(),
-        content: utf8ToBase64(jsonText),
-        branch: githubSettings.branch
-      };
-      if (sha) body.sha = sha;
-      return fetch(url, {
-        method: "PUT",
-        headers: githubHeaders(),
-        body: JSON.stringify(body)
-      }).then(function(response) {
-        if (!response.ok) {
-          return response.text().then(function(t) { throw new Error("GitHub'a yazılamadı. HTTP " + response.status + "\n" + t); });
-        }
-        return response.json();
-      });
-    }
-
-    function saveCardsToGithub(manual, overwrite) {
-      if (!activeUser || isSavingGithub) return;
-      if (!validateGithubSettings(manual)) return;
-      var path = getGithubDataPath();
-      isSavingGithub = true;
-      document.getElementById("saveButton").disabled = true;
-      setGithubStatus("GitHub'a kaydediliyor: " + path, "info");
-
-      return getGithubFile(path)
-        .then(function(fileObj) {
-          // Normal kayıt/içe aktarma sırasında mevcut GitHub kartlarıyla birleştirir.
-          // Silme işlemlerinde overwrite=true gelir ve JSON dosyası mevcut listeyle birebir güncellenir.
-          if (overwrite) {
-            cards = normalizeCards(cards);
-          } else {
-            cards = mergeCards(fileObj.cards || [], cards);
-          }
-          saveLocalCards(false);
-          var obj = buildExportObject();
-          obj.savedToGithubAt = new Date().toISOString();
-          obj.cards = cards;
-          return putGithubFile(path, JSON.stringify(obj, null, 2), fileObj.sha);
-        })
-        .then(function() {
-          renderList();
-          setGithubStatus("Kalıcı JSON kayıt başarılı. Dosya güncellendi: " + path, "ok");
-        })
-        .catch(function(err) {
-          var msg = err && err.message ? err.message : String(err);
-          setGithubStatus("GitHub kaydı yapılamadı. Kart bu cihazda yerel olarak duruyor.\n\nKontrol edilecekler:\n1) index.html içinde owner/repo/branch/token doğru mu?\n2) Token için Contents: Read and write yetkisi var mı?\n3) Repo adı ve branch adı doğru mu?\n4) Token süresi dolmuş olabilir mi?\n\nTeknik hata:\n" + msg, "error");
-          if (manual) alert("GitHub kaydı yapılamadı. Sayfadaki kırmızı hata kutusunu kontrol edin.");
-        })
-        .then(function() {
-          isSavingGithub = false;
-          document.getElementById("saveButton").disabled = false;
-        });
+      event.target.value = "";
     }
 
     function renderList() {
       document.getElementById("count").textContent = "(" + cards.length + " kart)";
       var list = document.getElementById("cardList");
       list.innerHTML = "";
+
       if (cards.length === 0) {
         var empty = document.createElement("p");
         empty.className = "small";
@@ -797,20 +585,20 @@
         list.appendChild(empty);
         return;
       }
+
       for (var i = 0; i < cards.length; i++) {
         var card = cards[i];
         var div = document.createElement("div");
         div.className = "item";
         div.innerHTML = "<strong>" + escapeHtml(card.question) + "</strong><br>" +
-          "<span class='small'>" + escapeHtml(card.answer).slice(0, 140) + (card.answer.length > 140 ? "..." : "") + "</span><br>" +
-          "<span class='small'>Dosya: data/" + escapeHtml(activeUser.username) + ".json</span><br>" +
+          "<span class='small'>" + escapeHtml(card.answer).slice(0, 120) + (card.answer.length > 120 ? "..." : "") + "</span><br>" +
           "<button class='danger' onclick='deleteCard(" + i + ")'>Sil</button>";
         list.appendChild(div);
       }
     }
 
     function escapeHtml(text) {
-      return String(text).replace(/[&<>\'\"]/g, function(char) {
+      return String(text).replace(/[&<>'"]/g, function(char) {
         return {
           '&': '&amp;',
           '<': '&lt;',
@@ -823,8 +611,12 @@
 
     document.addEventListener("DOMContentLoaded", function() {
       loadUsers();
-      document.getElementById("passwordInput").addEventListener("keydown", function(e) { if (e.key === "Enter") login(); });
-      document.getElementById("usernameInput").addEventListener("keydown", function(e) { if (e.key === "Enter") login(); });
+      document.getElementById("passwordInput").addEventListener("keydown", function(e) {
+        if (e.key === "Enter") login();
+      });
+      document.getElementById("usernameInput").addEventListener("keydown", function(e) {
+        if (e.key === "Enter") login();
+      });
     });
   </script>
 </body>
