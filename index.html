@@ -152,7 +152,7 @@
 
     <button id="loginButton" onclick="login()" disabled>Giriş Yap</button>
 
-    <p class="small">Varsayılan deneme kullanıcıları: <strong>admin / 1234</strong>, <strong>ogrenci1 / 1234</strong>, <strong>ogrenci2 / 1234</strong>.</p>
+    <p class="small">Varsayılan deneme kullanıcıları: <strong>admin / 1234</strong>, <strong>ogrenci1 / 1234</strong>, <strong>ogrenci2 / 1234</strong>. Şifre yazarken boşluk bırakmayın; sistem boşlukları otomatik temizler.</p>
     <p class="small">Not: GitHub Pages statik yayın yaptığı için bu giriş yapısı eğitim/demo amaçlıdır. Gerçek güvenli kullanıcı sistemi için backend gerekir.</p>
   </div>
 
@@ -207,9 +207,9 @@
     var userConfig = {
       salt: "soru-karti-v1",
       users: [
-        { username: "ffa", displayName: "Yönetici", role: "admin", passwordHash: "00b66a12e47976c4946388ead49ea7d0dabc1288d047fc2e8d69e0d095a66ffa" },
-        { username: "beyza", displayName: "Öğrenci 1", role: "student", passwordHash: "1671203b0bd7af093b21524c0aee64a09afa2d54426ea387da16df5b97f6ffe1" },
-        { username: "cagri", displayName: "Öğrenci 2", role: "student", passwordHash: "92b36122a379edb7a71978360b0af25ea4121c9ab7cd3e35a36d21c72965616b" }
+        { username: "admin", displayName: "Yönetici", role: "admin", password: "1234", passwordHash: "00b66a12e47976c4946388ead49ea7d0dabc1288d047fc2e8d69e0d095a66ffa" },
+        { username: "ogrenci1", displayName: "Öğrenci 1", role: "student", password: "1234", passwordHash: "1671203b0bd7af093b21524c0aee64a09afa2d54426ea387da16df5b97f6ffe1" },
+        { username: "ogrenci2", displayName: "Öğrenci 2", role: "student", password: "1234", passwordHash: "92b36122a379edb7a71978360b0af25ea4121c9ab7cd3e35a36d21c72965616b" }
       ]
     };
 
@@ -301,21 +301,44 @@
         return;
       }
 
-      hashPassword(username, password)
-        .then(function(hash) {
-          if (hash === user.passwordHash) {
+      checkPassword(user, username, password)
+        .then(function(isCorrect) {
+          if (isCorrect) {
             loginAs(user);
           } else {
-            setLoginMessage("Şifre hatalı.", "error");
+            setLoginMessage("Şifre hatalı. Varsayılan deneme şifresi: 1234", "error");
           }
         })
         .catch(function() {
-          setLoginMessage("Bu tarayıcı güvenli şifre doğrulamasını desteklemiyor. GitHub Pages HTTPS adresinden açmayı deneyin.", "error");
+          setLoginMessage("Şifre kontrolü yapılamadı. Demo kullanıcıları için 1234 şifresi kullanılabilir.", "error");
         });
     }
 
+    function checkPassword(user, username, password) {
+      return new Promise(function(resolve, reject) {
+        var typedPassword = String(password || "").trim();
+
+        // GitHub Pages statik yayın olduğu için bu sürüm demo amaçlıdır.
+        // users.json içinde düz metin password varsa önce onu kontrol eder.
+        // Böylece iPhone Safari/Chrome ve yerel dosya açılışlarında WebCrypto sorunları girişe engel olmaz.
+        if (typeof user.password !== "undefined") {
+          resolve(String(user.password).trim() === typedPassword);
+          return;
+        }
+
+        if (!user.passwordHash) {
+          resolve(false);
+          return;
+        }
+
+        hashPassword(username, typedPassword)
+          .then(function(hash) { resolve(hash === user.passwordHash); })
+          .catch(reject);
+      });
+    }
+
     function hashPassword(username, password) {
-      var raw = String(userConfig.salt || "soru-karti-v1") + ":" + normalizeUsername(username) + ":" + String(password);
+      var raw = String(userConfig.salt || "soru-karti-v1") + ":" + normalizeUsername(username) + ":" + String(password).trim();
       return sha256(raw);
     }
 
