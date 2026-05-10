@@ -13,7 +13,7 @@
       color: #222;
     }
     .container {
-      max-width: 850px;
+      max-width: 900px;
       margin: auto;
       background: white;
       padding: 24px;
@@ -46,6 +46,7 @@
     button.secondary { background: #475569; }
     button.danger { background: #dc2626; }
     button.success { background: #16a34a; }
+    button.warning { background: #d97706; }
     button.light { background: #e2e8f0; color: #0f172a; }
     button:disabled { opacity: 0.55; cursor: not-allowed; }
     .card-box {
@@ -99,6 +100,11 @@
       border-color: #fecaca;
       color: #7f1d1d;
     }
+    .info {
+      background: #dbeafe;
+      border-color: #93c5fd;
+      color: #1e3a8a;
+    }
     .topbar {
       display: flex;
       justify-content: space-between;
@@ -123,9 +129,47 @@
       background: #f8fafc;
     }
     .export-area textarea {
-      min-height: 160px;
+      min-height: 170px;
       font-family: monospace;
       font-size: 13px;
+    }
+    .file-name {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 8px;
+      background: #e2e8f0;
+      font-family: monospace;
+      color: #0f172a;
+    }
+
+    .settings-box {
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+    }
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 14px;
+      align-items: end;
+    }
+    .settings-grid label { display: block; }
+    .checkbox-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 8px 0 12px 0;
+      font-size: 14px;
+      color: #334155;
+    }
+    .checkbox-line input { width: auto; margin: 0; }
+    .muted-code {
+      font-family: monospace;
+      background: #e2e8f0;
+      border-radius: 6px;
+      padding: 2px 6px;
     }
     @media (max-width: 600px) {
       body { padding: 10px; }
@@ -133,6 +177,7 @@
       h1 { font-size: 24px; }
       button { width: 100%; margin-right: 0; }
       .row { display: block; }
+      .settings-grid { grid-template-columns: 1fr; }
       .question { font-size: 20px; }
     }
   </style>
@@ -140,7 +185,7 @@
 <body>
   <div class="container" id="loginPanel">
     <h1>Soru Kartı Programı</h1>
-    <p class="small">GitHub Pages uyumlu girişli sürüm. Her kullanıcı kendi soru kartlarını ayrı olarak görür.</p>
+    <p class="small">GitHub Pages uyumlu girişli sürüm. Her kullanıcının kartları kendi adıyla ayrı JSON dosyası formatında tutulur.</p>
 
     <div id="loginMessage" class="status">Kullanıcı bilgileri yükleniyor...</div>
 
@@ -152,8 +197,7 @@
 
     <button id="loginButton" onclick="login()" disabled>Giriş Yap</button>
 
-    <p class="small">Varsayılan deneme kullanıcıları: <strong>admin / 1234</strong>, <strong>ogrenci1 / 1234</strong>, <strong>ogrenci2 / 1234</strong>. Şifre yazarken boşluk bırakmayın; sistem boşlukları otomatik temizler.</p>
-    <p class="small">Not: GitHub Pages statik yayın yaptığı için bu giriş yapısı eğitim/demo amaçlıdır. Gerçek güvenli kullanıcı sistemi için backend gerekir.</p>
+    
   </div>
 
   <div class="container hidden" id="appPanel">
@@ -168,7 +212,27 @@
       </div>
     </div>
 
+    <div id="dataInfo" class="status info hidden"></div>
     <div id="storageWarning" class="status hidden"></div>
+
+
+    <div class="settings-box">
+      <h2>Kalıcı GitHub Kaydı</h2>
+      <p class="small">Kartlar <span id="dataPathPreview" class="muted-code">data/kullanici.json</span> dosyasına yazılır. Token ayarlanırsa kart ekledikçe GitHub reposuna otomatik kaydedilir.</p>
+      <div class="settings-grid">
+        <label><strong>GitHub Owner</strong><input id="ghOwner" type="text" placeholder="GitHub kullanıcı/organizasyon adı" /></label>
+        <label><strong>Repository</strong><input id="ghRepo" type="text" placeholder="Repo adı" /></label>
+        <label><strong>Branch</strong><input id="ghBranch" type="text" value="main" placeholder="main" /></label>
+        <label><strong>GitHub Token</strong><input id="ghToken" type="password" placeholder="Fine-grained token veya klasik PAT" /></label>
+      </div>
+      <label class="checkbox-line"><input id="ghAutoSave" type="checkbox" checked /> Kart kaydedince otomatik olarak GitHub'a yaz</label>
+      <div class="row">
+        <button class="secondary" onclick="saveGithubSettings()">GitHub Ayarlarını Kaydet</button>
+        <button class="success" onclick="saveCardsToGithub(true)">GitHub'a Kalıcı Kaydet</button>
+        <button class="light" onclick="testGithubSettings()">Bağlantıyı Test Et</button>
+      </div>
+      <div id="githubStatus" class="status info hidden"></div>
+    </div>
 
     <label><strong>Soru</strong></label>
     <textarea id="questionInput" placeholder="Örn: Kronik migren tanımı nedir?"></textarea>
@@ -179,15 +243,19 @@
     <div class="row">
       <button onclick="saveCard()">Kartı Kaydet</button>
       <button class="success" onclick="showRandomCard()">Karışık Soru Getir</button>
-      <button class="secondary" onclick="exportCards()">Kartlarımı Dışa Aktar</button>
-      <button class="secondary" onclick="document.getElementById('importFile').click()">Kartlarımı İçe Aktar</button>
-      <input id="importFile" type="file" accept="application/json" style="display:none" onchange="importCards(event)" />
-      <button class="danger" onclick="clearAllCards()">Kartlarımı Sil</button>
+      <button class="success" onclick="saveCardsToGithub(true)">GitHub'a Kaydet</button>
+      <button class="secondary" onclick="exportJsonForGithub()">JSON İndir</button>
+      <button class="secondary" onclick="exportTxt()">TXT İndir</button>
+      <button class="secondary" onclick="exportCsv()">Excel/CSV İndir</button>
+      <button class="secondary" onclick="document.getElementById('importFile').click()">JSON İçe Aktar</button>
+      <input id="importFile" type="file" accept="application/json,.json" style="display:none" onchange="importCards(event)" />
+      <button class="danger" onclick="clearLocalCards()">Yerel Kartları Sil</button>
     </div>
 
     <div id="exportArea" class="export-area hidden">
-      <strong>Dışa aktarma metni</strong>
-      <p class="small">iPhone indirmeyi engellerse aşağıdaki JSON metnini kopyalayıp kendi dosyanıza kaydedebilirsiniz.</p>
+      <strong>GitHub'a yüklenecek dosya</strong>
+      <p class="small">Bu kullanıcı için dosya adı: <span id="githubFileName" class="file-name"></span></p>
+      <p class="small">Kalıcı olması için indirilen JSON dosyasını GitHub reposundaki <strong>data/</strong> klasörüne aynı adla yükleyin. Sayfa tekrar açıldığında bu dosya okunur.</p>
       <textarea id="exportText" readonly></textarea>
     </div>
 
@@ -205,12 +273,27 @@
 
   <script>
     var userConfig = {
-      salt: "soru-karti-v1",
       users: [
-        { username: "ffa", displayName: "Yönetici", role: "admin", password: "1234", passwordHash: "00b66a12e47976c4946388ead49ea7d0dabc1288d047fc2e8d69e0d095a66ffa" },
-        { username: "beyza", displayName: "Öğrenci 1", role: "student", password: "1234", passwordHash: "1671203b0bd7af093b21524c0aee64a09afa2d54426ea387da16df5b97f6ffe1" },
-        { username: "cagri", displayName: "Öğrenci 2", role: "student", password: "1234", passwordHash: "92b36122a379edb7a71978360b0af25ea4121c9ab7cd3e35a36d21c72965616b" }
+        { username: "ffa", displayName: "Yönetici", role: "admin", password: "1234" },
+        { username: "beyza", displayName: "Öğrenci 1", role: "student", password: "1234" },
+        { username: "cagri", displayName: "Öğrenci 2", role: "student", password: "1234" }
       ]
+    };
+
+    var DEFAULT_GITHUB_SETTINGS = {
+      owner: "",
+      repo: "",
+      branch: "main",
+      token: "",
+      autoSave: true
+    };
+
+    var githubSettings = {
+      owner: "",
+      repo: "",
+      branch: "main",
+      token: "",
+      autoSave: true
     };
 
     var activeUser = null;
@@ -238,23 +321,19 @@
         return;
       }
 
-      fetch("users.json", { cache: "no-store" })
+      fetch("users.json?v=" + Date.now(), { cache: "no-store" })
         .then(function(response) {
-          if (!response.ok) {
-            throw new Error("users.json okunamadı");
-          }
+          if (!response.ok) throw new Error("users.json okunamadı");
           return response.json();
         })
         .then(function(data) {
-          if (data && data.users && data.users.length > 0) {
-            userConfig = data;
-          }
+          if (data && data.users && data.users.length > 0) userConfig = data;
           setLoginMessage("Kullanıcı bilgileri yüklendi. Giriş yapabilirsiniz.", "ok");
           enableLoginForm();
           restoreSession();
         })
         .catch(function() {
-          setLoginMessage("users.json okunamadı. Gömülü demo kullanıcıları kullanılacak. GitHub Pages'te yayınlandığında users.json dosyasının yüklü olduğundan emin olun.", "status");
+          setLoginMessage("users.json okunamadı. Gömülü demo kullanıcıları kullanılacak.", "status");
           enableLoginForm();
           restoreSession();
         });
@@ -265,9 +344,7 @@
         var savedUsername = sessionStorage.getItem("soru_karti_active_user");
         if (savedUsername) {
           var found = findUser(savedUsername);
-          if (found) {
-            loginAs(found);
-          }
+          if (found) loginAs(found);
         }
       } catch (e) {}
     }
@@ -275,9 +352,7 @@
     function findUser(username) {
       var clean = normalizeUsername(username);
       for (var i = 0; i < userConfig.users.length; i++) {
-        if (normalizeUsername(userConfig.users[i].username) === clean) {
-          return userConfig.users[i];
-        }
+        if (normalizeUsername(userConfig.users[i].username) === clean) return userConfig.users[i];
       }
       return null;
     }
@@ -288,7 +363,7 @@
 
     function login() {
       var username = normalizeUsername(document.getElementById("usernameInput").value);
-      var password = document.getElementById("passwordInput").value;
+      var password = String(document.getElementById("passwordInput").value || "").trim();
 
       if (!username || !password) {
         setLoginMessage("Lütfen kullanıcı adı ve şifre girin.", "error");
@@ -301,63 +376,11 @@
         return;
       }
 
-      checkPassword(user, username, password)
-        .then(function(isCorrect) {
-          if (isCorrect) {
-            loginAs(user);
-          } else {
-            setLoginMessage("Şifre hatalı. Varsayılan deneme şifresi: 1234", "error");
-          }
-        })
-        .catch(function() {
-          setLoginMessage("Şifre kontrolü yapılamadı. Demo kullanıcıları için 1234 şifresi kullanılabilir.", "error");
-        });
-    }
-
-    function checkPassword(user, username, password) {
-      return new Promise(function(resolve, reject) {
-        var typedPassword = String(password || "").trim();
-
-        // GitHub Pages statik yayın olduğu için bu sürüm demo amaçlıdır.
-        // users.json içinde düz metin password varsa önce onu kontrol eder.
-        // Böylece iPhone Safari/Chrome ve yerel dosya açılışlarında WebCrypto sorunları girişe engel olmaz.
-        if (typeof user.password !== "undefined") {
-          resolve(String(user.password).trim() === typedPassword);
-          return;
-        }
-
-        if (!user.passwordHash) {
-          resolve(false);
-          return;
-        }
-
-        hashPassword(username, typedPassword)
-          .then(function(hash) { resolve(hash === user.passwordHash); })
-          .catch(reject);
-      });
-    }
-
-    function hashPassword(username, password) {
-      var raw = String(userConfig.salt || "soru-karti-v1") + ":" + normalizeUsername(username) + ":" + String(password).trim();
-      return sha256(raw);
-    }
-
-    function sha256(text) {
-      return new Promise(function(resolve, reject) {
-        if (!window.crypto || !window.crypto.subtle || !window.TextEncoder) {
-          reject(new Error("WebCrypto desteklenmiyor"));
-          return;
-        }
-        var data = new TextEncoder().encode(text);
-        window.crypto.subtle.digest("SHA-256", data).then(function(buffer) {
-          var bytes = new Uint8Array(buffer);
-          var hex = "";
-          for (var i = 0; i < bytes.length; i++) {
-            hex += ("00" + bytes[i].toString(16)).slice(-2);
-          }
-          resolve(hex);
-        }).catch(reject);
-      });
+      if (String(user.password || "").trim() === password) {
+        loginAs(user);
+      } else {
+        setLoginMessage("Şifre hatalı.", "error");
+      }
     }
 
     function loginAs(user) {
@@ -367,25 +390,22 @@
         role: user.role || "user"
       };
 
-      try {
-        sessionStorage.setItem("soru_karti_active_user", activeUser.username);
-      } catch (e) {}
+      try { sessionStorage.setItem("soru_karti_active_user", activeUser.username); } catch (e) {}
 
       document.getElementById("loginPanel").className = "container hidden";
       document.getElementById("appPanel").className = "container";
       document.getElementById("activeUser").textContent = activeUser.displayName + " (" + activeUser.username + ")";
       document.getElementById("passwordInput").value = "";
+      loadGithubSettings();
+      updateDataPathPreview();
       loadCardsForUser();
-      renderList();
     }
 
     function logout() {
       activeUser = null;
       cards = [];
       currentCard = null;
-      try {
-        sessionStorage.removeItem("soru_karti_active_user");
-      } catch (e) {}
+      try { sessionStorage.removeItem("soru_karti_active_user"); } catch (e) {}
       document.getElementById("appPanel").className = "container hidden";
       document.getElementById("loginPanel").className = "container";
       document.getElementById("currentQuestion").textContent = "Henüz soru seçilmedi.";
@@ -395,25 +415,121 @@
     }
 
     function getStorageKey() {
-      if (!activeUser) return "soru_kartlari_v2_guest";
-      return "soru_kartlari_v2_" + activeUser.username;
+      if (!activeUser) return "soru_kartlari_guest";
+      return "soru_kartlari_" + activeUser.username;
+    }
+
+    function getGithubDataPath() {
+      return "data/" + activeUser.username + ".json";
+    }
+
+    function showDataInfo(message, type) {
+      var box = document.getElementById("dataInfo");
+      box.className = "status " + (type || "info");
+      box.textContent = message;
     }
 
     function loadCardsForUser() {
+      cards = [];
+      currentCard = null;
+      renderList();
+      showDataInfo("Kullanıcıya ait data dosyası kontrol ediliyor: " + getGithubDataPath(), "info");
+
+      var localCards = loadLocalCards();
+
+      if (!window.fetch) {
+        cards = localCards;
+        showDataInfo("Tarayıcı data dosyasını okuyamadı. Sadece bu cihazdaki yerel kayıtlar yüklendi.", "status");
+        renderList();
+        return;
+      }
+
+      fetch(getGithubDataPath() + "?v=" + Date.now(), { cache: "no-store" })
+        .then(function(response) {
+          if (!response.ok) throw new Error("Data dosyası bulunamadı");
+          return response.json();
+        })
+        .then(function(data) {
+          var githubCards = extractCards(data);
+          cards = mergeCards(githubCards, localCards);
+          saveCards(false);
+          showDataInfo("GitHub data dosyası ve yerel kayıtlar yüklendi. Kalıcı GitHub dosyası: " + getGithubDataPath(), "ok");
+          renderList();
+        })
+        .catch(function() {
+          cards = localCards;
+          showDataInfo("Bu kullanıcı için GitHub data dosyası bulunamadı veya okunamadı. Yeni kartlar bu cihazda tutulacak; kalıcı yapmak için JSON indirip data/ klasörüne yükleyin.", "status");
+          renderList();
+        });
+    }
+
+    function extractCards(data) {
+      if (Array.isArray(data)) return normalizeCards(data);
+      if (data && Array.isArray(data.cards)) return normalizeCards(data.cards);
+      return [];
+    }
+
+    function normalizeCards(inputCards) {
+      var result = [];
+      for (var i = 0; i < inputCards.length; i++) {
+        var c = inputCards[i];
+        if (c && c.question && c.answer) {
+          result.push({
+            id: c.id || makeId(),
+            question: String(c.question),
+            answer: String(c.answer),
+            owner: activeUser ? activeUser.username : (c.owner || ""),
+            createdAt: c.createdAt || new Date().toISOString(),
+            updatedAt: c.updatedAt || c.createdAt || new Date().toISOString()
+          });
+        }
+      }
+      return result;
+    }
+
+    function mergeCards(a, b) {
+      var map = {};
+      var merged = [];
+      function addList(list) {
+        for (var i = 0; i < list.length; i++) {
+          var card = list[i];
+          var id = card.id || makeId();
+          card.id = id;
+          if (!map[id]) {
+            map[id] = card;
+            merged.push(card);
+          } else {
+            var oldTime = new Date(map[id].updatedAt || map[id].createdAt || 0).getTime();
+            var newTime = new Date(card.updatedAt || card.createdAt || 0).getTime();
+            if (newTime > oldTime) {
+              for (var j = 0; j < merged.length; j++) {
+                if (merged[j].id === id) merged[j] = card;
+              }
+              map[id] = card;
+            }
+          }
+        }
+      }
+      addList(a || []);
+      addList(b || []);
+      return merged;
+    }
+
+    function loadLocalCards() {
       try {
         var raw = localStorage.getItem(getStorageKey()) || "[]";
-        cards = JSON.parse(raw);
-        if (!Array.isArray(cards)) cards = [];
+        var parsed = JSON.parse(raw);
         storageAvailable = true;
         hideStorageWarning();
+        return normalizeCards(Array.isArray(parsed) ? parsed : extractCards(parsed));
       } catch (e) {
-        cards = [];
         storageAvailable = false;
-        showStorageWarning("Tarayıcı yerel depolamaya izin vermiyor. Kartlar bu oturumda geçici tutulacak. Çıkmadan önce dışa aktarmanız önerilir.");
+        showStorageWarning("Tarayıcı yerel depolamaya izin vermiyor. Kartlar bu oturumda geçici tutulacak.");
+        return [];
       }
     }
 
-    function saveCards() {
+    function saveCards(shouldRender) {
       if (!activeUser) return;
       try {
         localStorage.setItem(getStorageKey(), JSON.stringify(cards));
@@ -421,9 +537,9 @@
         hideStorageWarning();
       } catch (e) {
         storageAvailable = false;
-        showStorageWarning("Kartlar tarayıcıya kaydedilemedi. iPhone depolamayı engelliyor olabilir. Kartlarınızı dışa aktararak saklayın.");
+        showStorageWarning("Kartlar tarayıcıya kaydedilemedi. iPhone depolamayı engelliyor olabilir. JSON indirerek saklayın.");
       }
-      renderList();
+      if (shouldRender !== false) renderList();
     }
 
     function showStorageWarning(message) {
@@ -438,6 +554,11 @@
       box.textContent = "";
     }
 
+    function makeId() {
+      var prefix = activeUser ? activeUser.username : "user";
+      return prefix + "_" + Date.now() + "_" + Math.floor(Math.random() * 1000000);
+    }
+
     function saveCard() {
       var question = document.getElementById("questionInput").value.trim();
       var answer = document.getElementById("answerInput").value.trim();
@@ -448,6 +569,7 @@
       }
 
       cards.push({
+        id: makeId(),
         question: question,
         answer: answer,
         owner: activeUser.username,
@@ -457,6 +579,12 @@
       document.getElementById("questionInput").value = "";
       document.getElementById("answerInput").value = "";
       saveCards();
+      showDataInfo("Kart eklendi. Yerel kayıt yapıldı; GitHub otomatik kayıt ayarı açıksa kalıcı dosyaya yazılacak.", "info");
+      if (githubSettings && githubSettings.autoSave && githubSettings.token && githubSettings.owner && githubSettings.repo) {
+        saveCardsToGithub(false);
+      } else {
+        showGithubStatus("GitHub otomatik kayıt için owner, repo ve token ayarı eksik. Ayarları doldurup 'GitHub Ayarlarını Kaydet' butonuna basın.", "status");
+      }
     }
 
     function showRandomCard() {
@@ -481,44 +609,89 @@
     }
 
     function deleteCard(index) {
-      if (confirm("Bu kart silinsin mi?")) {
+      if (confirm("Bu kart sadece bu cihazdaki listeden silinsin mi? GitHub data dosyasından otomatik silinmez; sayfa yenilenince GitHub dosyasında varsa geri gelebilir.")) {
         cards.splice(index, 1);
         saveCards();
       }
     }
 
-    function clearAllCards() {
-      if (confirm("Bu kullanıcıya ait tüm kartları silmek istediğine emin misin?")) {
+    function clearLocalCards() {
+      if (confirm("Bu kullanıcıya ait bu cihazdaki yerel kartları silmek istediğine emin misin? GitHub data dosyası silinmez.")) {
         cards = [];
         currentCard = null;
-        try {
-          localStorage.removeItem(getStorageKey());
-        } catch (e) {}
+        try { localStorage.removeItem(getStorageKey()); } catch (e) {}
         document.getElementById("currentQuestion").textContent = "Henüz soru seçilmedi.";
         document.getElementById("currentAnswer").textContent = "";
         document.getElementById("currentAnswer").style.display = "none";
         renderList();
+        showDataInfo("Yerel kayıtlar silindi. GitHub'daki data dosyası silinmedi; sayfa yenilenince tekrar okunabilir.", "status");
       }
     }
 
-    function exportCards() {
-      if (!activeUser) return;
-      var exportObject = {
+    function buildExportObject() {
+      return {
         app: "Soru Kartı Programı",
-        version: "github-pages-v1",
+        version: "github-pages-data-v2",
         username: activeUser.username,
         displayName: activeUser.displayName,
+        dataFile: "data/" + activeUser.username + ".json",
         exportedAt: new Date().toISOString(),
         cards: cards
       };
-      var jsonText = JSON.stringify(exportObject, null, 2);
-      var filename = "soru_kartlari_" + activeUser.username + ".json";
+    }
 
+    function exportJsonForGithub() {
+      if (!activeUser) return;
+      var obj = buildExportObject();
+      var jsonText = JSON.stringify(obj, null, 2);
+      var filename = activeUser.username + ".json";
+      document.getElementById("githubFileName").textContent = "data/" + filename;
       document.getElementById("exportText").value = jsonText;
       document.getElementById("exportArea").className = "export-area";
+      downloadText(filename, jsonText, "application/json;charset=utf-8");
+    }
 
+    function exportTxt() {
+      if (!activeUser) return;
+      var lines = [];
+      lines.push("Soru Kartı Programı");
+      lines.push("Kullanıcı: " + activeUser.displayName + " (" + activeUser.username + ")");
+      lines.push("Tarih: " + new Date().toLocaleString("tr-TR"));
+      lines.push("Toplam Kart: " + cards.length);
+      lines.push("----------------------------------------");
+      for (var i = 0; i < cards.length; i++) {
+        lines.push("Kart " + (i + 1));
+        lines.push("Soru: " + cards[i].question);
+        lines.push("Cevap: " + cards[i].answer);
+        lines.push("----------------------------------------");
+      }
+      downloadText(activeUser.username + ".txt", lines.join("\n"), "text/plain;charset=utf-8");
+    }
+
+    function exportCsv() {
+      if (!activeUser) return;
+      var csv = "\ufeff";
+      csv += "Kullanici,Soru,Cevap,Olusturma Tarihi,Guncelleme Tarihi\n";
+      for (var i = 0; i < cards.length; i++) {
+        csv += [
+          activeUser.username,
+          cards[i].question,
+          cards[i].answer,
+          cards[i].createdAt || "",
+          cards[i].updatedAt || ""
+        ].map(csvCell).join(",") + "\n";
+      }
+      downloadText(activeUser.username + ".csv", csv, "text/csv;charset=utf-8");
+    }
+
+    function csvCell(value) {
+      var text = String(value || "");
+      return '"' + text.replace(/"/g, '""') + '"';
+    }
+
+    function downloadText(filename, text, mimeType) {
       try {
-        var blob = new Blob([jsonText], { type: "application/json" });
+        var blob = new Blob([text], { type: mimeType });
         var url = URL.createObjectURL(blob);
         var a = document.createElement("a");
         a.href = url;
@@ -528,7 +701,7 @@
         document.body.removeChild(a);
         setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
       } catch (e) {
-        alert("Dosya otomatik indirilemedi. Aşağıdaki JSON metnini kopyalayabilirsiniz.");
+        alert("Dosya otomatik indirilemedi. JSON alanındaki metni kopyalayabilirsiniz.");
       }
     }
 
@@ -539,35 +712,12 @@
       reader.onload = function(e) {
         try {
           var imported = JSON.parse(e.target.result);
-          var importedCards = [];
-
-          if (Array.isArray(imported)) {
-            importedCards = imported;
-          } else if (imported && Array.isArray(imported.cards)) {
-            importedCards = imported.cards;
-          } else {
-            throw new Error("Format uygun değil");
-          }
-
-          var cleaned = [];
-          for (var i = 0; i < importedCards.length; i++) {
-            var c = importedCards[i];
-            if (c && c.question && c.answer) {
-              cleaned.push({
-                question: String(c.question),
-                answer: String(c.answer),
-                owner: activeUser.username,
-                createdAt: c.createdAt || new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-              });
-            }
-          }
-
-          cards = cards.concat(cleaned);
+          var importedCards = extractCards(imported);
+          cards = mergeCards(cards, importedCards);
           saveCards();
-          alert(cleaned.length + " kart içe aktarıldı.");
+          alert(importedCards.length + " kart içe aktarıldı.");
         } catch (err) {
-          alert("Geçerli bir kart dosyası seçilmedi.");
+          alert("Geçerli bir JSON kart dosyası seçilmedi.");
         }
       };
       reader.readAsText(file);
@@ -592,7 +742,8 @@
         var div = document.createElement("div");
         div.className = "item";
         div.innerHTML = "<strong>" + escapeHtml(card.question) + "</strong><br>" +
-          "<span class='small'>" + escapeHtml(card.answer).slice(0, 120) + (card.answer.length > 120 ? "..." : "") + "</span><br>" +
+          "<span class='small'>" + escapeHtml(card.answer).slice(0, 140) + (card.answer.length > 140 ? "..." : "") + "</span><br>" +
+          "<span class='small'>Dosya: data/" + escapeHtml(activeUser.username) + ".json</span><br>" +
           "<button class='danger' onclick='deleteCard(" + i + ")'>Sil</button>";
         list.appendChild(div);
       }
@@ -610,14 +761,228 @@
       });
     }
 
+
+    function inferGithubPagesSettings() {
+      var inferred = { owner: "", repo: "" };
+      try {
+        var host = window.location.hostname || "";
+        if (host.indexOf("github.io") !== -1) {
+          inferred.owner = host.split(".")[0] || "";
+          var parts = window.location.pathname.split("/").filter(function(x) { return x; });
+          inferred.repo = parts.length > 0 ? parts[0] : (inferred.owner ? inferred.owner + ".github.io" : "");
+        }
+      } catch (e) {}
+      return inferred;
+    }
+
+    function getGithubSettingsKey() {
+      return "soru_karti_github_settings";
+    }
+
+    function loadGithubSettings() {
+      var inferred = inferGithubPagesSettings();
+      githubSettings = {
+        owner: DEFAULT_GITHUB_SETTINGS.owner || inferred.owner || "",
+        repo: DEFAULT_GITHUB_SETTINGS.repo || inferred.repo || "",
+        branch: DEFAULT_GITHUB_SETTINGS.branch || "main",
+        token: DEFAULT_GITHUB_SETTINGS.token || "",
+        autoSave: DEFAULT_GITHUB_SETTINGS.autoSave !== false
+      };
+      try {
+        var saved = JSON.parse(localStorage.getItem(getGithubSettingsKey()) || "{}");
+        if (saved.owner) githubSettings.owner = saved.owner;
+        if (saved.repo) githubSettings.repo = saved.repo;
+        if (saved.branch) githubSettings.branch = saved.branch;
+        if (saved.token) githubSettings.token = saved.token;
+        if (typeof saved.autoSave === "boolean") githubSettings.autoSave = saved.autoSave;
+      } catch (e) {}
+      fillGithubSettingsForm();
+    }
+
+    function fillGithubSettingsForm() {
+      var owner = document.getElementById("ghOwner");
+      var repo = document.getElementById("ghRepo");
+      var branch = document.getElementById("ghBranch");
+      var token = document.getElementById("ghToken");
+      var autoSave = document.getElementById("ghAutoSave");
+      if (!owner) return;
+      owner.value = githubSettings.owner || "";
+      repo.value = githubSettings.repo || "";
+      branch.value = githubSettings.branch || "main";
+      token.value = githubSettings.token || "";
+      autoSave.checked = githubSettings.autoSave !== false;
+    }
+
+    function saveGithubSettings() {
+      githubSettings = {
+        owner: String(document.getElementById("ghOwner").value || "").trim(),
+        repo: String(document.getElementById("ghRepo").value || "").trim(),
+        branch: String(document.getElementById("ghBranch").value || "main").trim() || "main",
+        token: String(document.getElementById("ghToken").value || "").trim(),
+        autoSave: document.getElementById("ghAutoSave").checked
+      };
+      try {
+        localStorage.setItem(getGithubSettingsKey(), JSON.stringify(githubSettings));
+      } catch (e) {}
+      updateDataPathPreview();
+      showGithubStatus("GitHub ayarları kaydedildi. Bundan sonra kartlar data/" + activeUser.username + ".json dosyasına commit olarak yazılabilir.", "ok");
+    }
+
+    function updateDataPathPreview() {
+      var el = document.getElementById("dataPathPreview");
+      if (el && activeUser) el.textContent = getGithubDataPath();
+    }
+
+    function showGithubStatus(message, type) {
+      var box = document.getElementById("githubStatus");
+      if (!box) return;
+      box.className = "status " + (type || "info");
+      box.textContent = message;
+    }
+
+    function validateGithubSettings(showAlert) {
+      if (!githubSettings.owner || !githubSettings.repo || !githubSettings.branch || !githubSettings.token) {
+        var msg = "GitHub'a yazmak için owner, repo, branch ve token alanları doldurulmalıdır.";
+        showGithubStatus(msg, "error");
+        if (showAlert) alert(msg);
+        return false;
+      }
+      return true;
+    }
+
+    function githubApiBase() {
+      return "https://api.github.com/repos/" + encodeURIComponent(githubSettings.owner) + "/" + encodeURIComponent(githubSettings.repo) + "/contents/";
+    }
+
+    function encodePath(path) {
+      return String(path).split("/").map(function(part) { return encodeURIComponent(part); }).join("/");
+    }
+
+    function githubHeaders() {
+      return {
+        "Accept": "application/vnd.github+json",
+        "Authorization": "Bearer " + githubSettings.token,
+        "X-GitHub-Api-Version": "2022-11-28",
+        "Content-Type": "application/json"
+      };
+    }
+
+    function utf8ToBase64(str) {
+      try {
+        return btoa(unescape(encodeURIComponent(str)));
+      } catch (e) {
+        var bytes = new TextEncoder().encode(str);
+        var binary = "";
+        for (var i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        return btoa(binary);
+      }
+    }
+
+    function base64ToUtf8(base64) {
+      try {
+        return decodeURIComponent(escape(atob(base64)));
+      } catch (e) {
+        var binary = atob(base64);
+        if (window.TextDecoder) {
+          var bytes = new Uint8Array(binary.length);
+          for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+          return new TextDecoder("utf-8").decode(bytes);
+        }
+        return binary;
+      }
+    }
+
+    function getGithubFile(path) {
+      var url = githubApiBase() + encodePath(path) + "?ref=" + encodeURIComponent(githubSettings.branch);
+      return fetch(url, { method: "GET", headers: githubHeaders(), cache: "no-store" })
+        .then(function(response) {
+          if (response.status === 404) return { exists: false, sha: null, cards: [] };
+          if (!response.ok) {
+            return response.text().then(function(t) { throw new Error("GitHub dosyası okunamadı: " + response.status + " " + t); });
+          }
+          return response.json().then(function(data) {
+            var text = "";
+            if (data.content) text = base64ToUtf8(String(data.content).replace(/\n/g, ""));
+            var parsed = text ? JSON.parse(text) : [];
+            return { exists: true, sha: data.sha, cards: extractCards(parsed), raw: parsed };
+          });
+        });
+    }
+
+    function putGithubFile(path, jsonText, sha) {
+      var url = githubApiBase() + encodePath(path);
+      var body = {
+        message: "Update cards for " + activeUser.username + " - " + new Date().toISOString(),
+        content: utf8ToBase64(jsonText),
+        branch: githubSettings.branch
+      };
+      if (sha) body.sha = sha;
+      return fetch(url, {
+        method: "PUT",
+        headers: githubHeaders(),
+        body: JSON.stringify(body)
+      }).then(function(response) {
+        if (!response.ok) {
+          return response.text().then(function(t) { throw new Error("GitHub'a yazılamadı: " + response.status + " " + t); });
+        }
+        return response.json();
+      });
+    }
+
+    function saveCardsToGithub(manual) {
+      if (!activeUser) return;
+      saveGithubSettings();
+      if (!validateGithubSettings(manual)) return;
+      var path = getGithubDataPath();
+      showGithubStatus("GitHub dosyası hazırlanıyor: " + path, "info");
+
+      return getGithubFile(path)
+        .then(function(fileObj) {
+          var githubCards = fileObj.cards || [];
+          var merged = mergeCards(githubCards, cards);
+          cards = merged;
+          saveCards(false);
+          var obj = buildExportObject();
+          obj.version = "github-pages-api-persistent-v3";
+          obj.savedToGithubAt = new Date().toISOString();
+          obj.dataFile = path;
+          obj.cards = merged;
+          var jsonText = JSON.stringify(obj, null, 2);
+          return putGithubFile(path, jsonText, fileObj.sha);
+        })
+        .then(function() {
+          renderList();
+          showGithubStatus("Kalıcı kayıt tamamlandı. Kartlar GitHub reposunda " + path + " dosyasına yazıldı.", "ok");
+          showDataInfo("Kartlar GitHub'da kalıcı olarak tutuluyor: " + path, "ok");
+        })
+        .catch(function(err) {
+          showGithubStatus(err.message || String(err), "error");
+          if (manual) alert("GitHub kaydı yapılamadı. Token yetkisini ve repo/branch bilgisini kontrol edin.");
+        });
+    }
+
+    function testGithubSettings() {
+      saveGithubSettings();
+      if (!validateGithubSettings(true)) return;
+      var url = "https://api.github.com/repos/" + encodeURIComponent(githubSettings.owner) + "/" + encodeURIComponent(githubSettings.repo);
+      showGithubStatus("GitHub bağlantısı test ediliyor...", "info");
+      fetch(url, { headers: githubHeaders(), cache: "no-store" })
+        .then(function(response) {
+          if (!response.ok) throw new Error("Bağlantı başarısız: " + response.status);
+          return response.json();
+        })
+        .then(function(repo) {
+          showGithubStatus("Bağlantı başarılı. Repo bulundu: " + repo.full_name + ". Şimdi 'GitHub'a Kalıcı Kaydet' butonunu kullanabilirsiniz.", "ok");
+        })
+        .catch(function(err) {
+          showGithubStatus(err.message || String(err), "error");
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
       loadUsers();
-      document.getElementById("passwordInput").addEventListener("keydown", function(e) {
-        if (e.key === "Enter") login();
-      });
-      document.getElementById("usernameInput").addEventListener("keydown", function(e) {
-        if (e.key === "Enter") login();
-      });
+      document.getElementById("passwordInput").addEventListener("keydown", function(e) { if (e.key === "Enter") login(); });
+      document.getElementById("usernameInput").addEventListener("keydown", function(e) { if (e.key === "Enter") login(); });
     });
   </script>
 </body>
